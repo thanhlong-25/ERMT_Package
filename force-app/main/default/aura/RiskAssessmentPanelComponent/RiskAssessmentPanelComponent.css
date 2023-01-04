@@ -1,0 +1,16 @@
+.THIS .slds-form-element__control > .slds-form-element__static:first-child {
+    border-bottom: 1px solid rgb(221, 219, 218);
+    width: calc(100% - 1.5rem);
+}
+.THIS .fix_position_wrap {
+	position: relative;
+}
+.THIS .fix_position_wrap .fix_position{
+	position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+.THIS .slds-spinner_container {  
+  z-index: 10000;
+  position: fixed;   
+}

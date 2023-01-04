@@ -1,0 +1,17 @@
+<template>
+    <div class="slds-hide">{objectFieldName}</div>
+    <lightning-combobox
+        label={label}
+        value={value}
+        placeholder=""
+        options={operatorSels}
+        onchange={handleChange}
+    ></lightning-combobox>
+    <template if:true={errorMessages}>
+        <div class="slds-m-around_xx-small">
+            <template for:each={errorMessages} for:item="errMsg">
+                <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+            </template>
+        </div>
+    </template>
+</template>

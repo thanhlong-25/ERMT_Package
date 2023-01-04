@@ -1,0 +1,50 @@
+table.riskMatrix {
+    width: auto;
+    border-collapse: separate;
+    border-top: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+    border-bottom: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.riskMatrix tbody td,
+table.riskMatrix tbody th {
+    border-top: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.riskMatrix thead>tr+tr>th {
+    border-top: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.riskMatrix td+td,
+table.riskMatrix th+th,
+table.riskMatrix th+td,
+table.riskMatrix td+th {
+    border-left: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.riskMatrix tr>th:first-child,
+table.riskMatrix tr>td:first-child {
+    border-left: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.riskMatrix tr>th:last-child,
+table.riskMatrix tr>td:last-child {
+    border-right: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.riskMatrix tbody th {
+    background-color: rgb(250, 250, 249);
+    color: rgb(81, 79, 77);
+    padding: 0.25rem 0.5rem;
+    font-weight: var(--lwc-fontWeightBold,700);
+    line-height: normal;
+}
+.title {
+    font-weight: var(--lwc-fontWeightBold,700);
+}
+.itemWrap {
+    overflow-y: auto;
+    min-height: 1.5em;
+    max-height: 7.5em;
+    min-width: 2em;
+    max-width: 16em;
+}
+.nowrap {
+    white-space: nowrap;
+}
+.accountSearchCondWrap {
+    max-height: 250px;
+}

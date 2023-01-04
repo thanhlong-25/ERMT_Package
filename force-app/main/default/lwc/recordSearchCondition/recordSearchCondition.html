@@ -1,0 +1,144 @@
+<template>
+    <lightning-card>
+        <div class="">
+            <div class="slds-expression">
+                <h2 if:true={label} class="slds-expression__title">{label}</h2>
+                <ul>
+                    <template for:each={searchConditions} for:item="searchCond">
+                        <li key={searchCond} class="slds-expression__row">
+                            <fieldset>
+                                <legend class="slds-expression__legend">
+                                    <span>{searchCond.no}</span>
+                                    <span class="slds-assistive-text">{searchCond.no}</span>
+                                </legend>
+                                <div class="slds-grid slds-gutters_xx-small">
+                                    <div class="slds-col">
+                                        <c-field-lookup
+                                            label={labels.expression_field}
+                                            object-name={objectName}
+                                            value={searchCond.fieldName}
+                                            select-field-names={selectFieldNames}
+                                            max-level={maxLevel}
+                                            is-query=true
+                                            onselectionchange={handleFieldChange}
+                                            data-no={searchCond.no}
+                                        ></c-field-lookup>
+                                    </div>
+                                    <div class="slds-col slds-grow-none">
+                                        <c-field-operator-select
+                                            label={labels.expression_operator}
+                                            object-name={objectName}
+                                            field-name={searchCond.fieldName}
+                                            value={searchCond.operator}
+                                            onselectionchange={handleOperatorChange}
+                                            data-no={searchCond.no}
+                                        ></c-field-operator-select>
+                                    </div>
+                                    <div class="slds-col">
+                                        <c-field-value-input
+                                            label={labels.expression_value}
+                                            object-name={objectName}
+                                            field-name={searchCond.fieldName}
+                                            value={searchCond.value}
+                                            oninputchange={handleValueChange}
+                                            data-no={searchCond.no}
+                                        ></c-field-value-input>
+                                    </div>
+                                    <div class="slds-col slds-grow-none">
+                                        <div class="slds-form-element">
+                                            <span class="slds-form-element__label" style="visibility: hidden;">{labels.expression_delete}</span>
+                                            <div class="slds-form-element__control">
+                                                <button class="slds-button slds-button_icon slds-button_icon-border-filled" title={labels.expression_delete}
+                                                    onclick={handleSearchConditionDeleteClick}
+                                                    data-no={searchCond.no}
+                                                >
+                                                    <lightning-icon icon-name="utility:delete" size="x-small" class="slds-button__icon"></lightning-icon>
+                                                    <span class="slds-assistive-text">{labels.expression_delete}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <template if:true={searchCond.errMsg}>
+                                <div class="slds-m-around_xx-small">
+                                    <p class="slds-text-color_error">{searchCond.errMsg}</p>
+                                </div>
+                            </template>
+                        </li>
+                    </template>
+                </ul>
+                <div class="slds-expression__buttons buttons">
+                    <button class="slds-button slds-button_neutral"
+                        onclick={handleSearchConditionAddClick}
+                    >
+                        <lightning-icon
+                            icon-name="utility:add"
+                            size="x-small"
+                            class="slds-button__icon slds-button__icon_left"
+                        ></lightning-icon>
+                        {labels.expression_add}
+                    </button>
+                    <button class="slds-button slds-button_neutral"
+                        onclick={handleSearchConditionAllDeleteClick}
+                    >
+                        <lightning-icon
+                            icon-name="utility:delete"
+                            size="x-small"
+                            class="slds-button__icon slds-button__icon_left"
+                        ></lightning-icon>
+                        {labels.expression_allDelete}
+                    </button>
+                </div>
+                <div class="slds-expression__custom-logic">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label" for="text-input-id">{labels.logic}</label>
+                        <lightning-helptext content={labels.logic_help}></lightning-helptext>
+                        <div class="slds-form-element__control">
+                            <input type="text" id="text-input-id" class="slds-input"
+                                value={searchConditionLogic}
+                                onchange={handleSearchConditionLogicChange}
+                            />
+                            <template if:true={searchConditionLogicErrMsg}>
+                                <div class="slds-m-around_xx-small">
+                                    <p class="slds-text-color_error">{searchConditionLogicErrMsg}</p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <template if:true={errorMessages}>
+                <div class="slds-m-around_xx-small">
+                    <template for:each={errorMessages} for:item="errMsg">
+                        <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+                    </template>
+                </div>
+            </template>
+        </div>
+        <div if:false={isSearchHide} slot="footer">
+            <div class="buttons" role="group">
+                <button class="slds-button slds-button_neutral slds-m-right_xx-small"
+                    onclick={handleSearchClick}
+                >
+                    <lightning-icon
+                        icon-name="utility:search"
+                        size="x-small"
+                        class="slds-button__icon slds-button__icon_left"
+                    ></lightning-icon>
+                    {labels.search}
+                </button>
+                <button class="slds-button slds-button_neutral"
+                    onclick={handleCancelClick}
+                >
+                    <lightning-icon
+                        icon-name="utility:close"
+                        size="x-small"
+                        class="slds-button__icon slds-button__icon_left"
+                    ></lightning-icon>
+                    {labels.cancel}
+                </button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

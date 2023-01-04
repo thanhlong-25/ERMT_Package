@@ -1,0 +1,919 @@
+<apex:page sidebar="false" showHeader="false" standardController="Project__c" extensions="ERMT_RiskMatrixGeneralCX" docType="html-5.0" >
+<html ng-app="SLDSApp">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <apex:slds />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular-sanitize.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+    <apex:includeScript value="{!$Resource.svg4everybody}"/>
+    <style>
+    .center-content {
+        align-items: center;
+        justify-content: center;
+    }
+    .wrapper-page {
+        width: 890px;
+        margin: 10px auto;
+    }
+    .axis-y {
+        display: inline-block;
+        vertical-align: top;
+        position: relative;
+    }
+    .min-width-y {
+        min-width: 60px;
+    }
+    .axis-y .label-axis-y {
+        /* position: absolute;
+        top: -25px;
+        right:-123px;
+        width: 200px;
+        text-align: center; */
+    }
+    .axis-y li{
+        display: block;
+        padding: 0;
+        margin: 0;
+        height: 100px;
+        line-height: 100px;
+        text-align: right;
+    }
+    .axis-y li .num {
+        float: right;
+        margin-left: 10px;
+    }
+    .axis-x {
+        margin-left: 5%;
+        position: relative;
+    }
+    .axis-x .label-axis-x {
+        position: absolute;
+        top: 0;
+        right: 0;
+    }
+    .axis-x ul{
+        display: flex;
+        justify-content: space-between;
+    }
+    .axis-x ul li{
+        width: 150px;
+        text-align: center;
+        margin:0;
+        padding:0;
+    }
+    .axis-x li .num {
+        display: block;
+        margin: 15px 0 5px;
+    }
+    .grid{
+        display: inline-table;
+        width: 70%;
+        height: 450px;
+        background-color: #F3F2F2;
+        border-left: solid 1px #F3F2F2;
+        border-top: solid 1px #F3F2F2;
+    }
+    .grid li {
+        padding: 0;
+        margin: 0;
+        display: block;
+        float: left;
+        text-align: center;
+    }
+    .grid li .wrapper-column{
+        padding: 5px;
+        overflow: auto;
+        width: calc(100% - 1px);
+        height: calc(100% - 1px);
+    }
+    .grid li .wrapper-column .record-link {
+        border: solid 1px #ccc;
+        padding: 0 5px;
+        display: block;
+        color: #fff; 
+        margin-bottom: 5px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    #id_selectEvaluation{
+        width: 150px;
+        margin-left: -83px; 
+        border-radius: .25rem; 
+        padding-left: .5rem;
+        padding-right: 0.1rem; 
+        border: 1px solid rgb(221, 219, 218); 
+        height: calc(1.875rem + (1px * 2));
+    }
+    #id_selectEvaluation2{
+        width: 150px;
+        border-radius: .25rem; 
+        padding-left: .5rem;
+        padding-right: 0.1rem; 
+        border: 1px solid rgb(221, 219, 218); 
+        height: calc(1.875rem + (1px * 2));
+    }
+    #id_evaluation{
+        width: 250px;
+        margin-left: -280px;
+        margin-bottom: -33px;
+        text-align: right;
+    }
+    #btnSave{
+        // margin-bottom: 38px; 
+        // margin-left: -45px; 
+        width: 112px;
+        text-align: left
+    }
+    #button-down{
+        margin-left: 80%;
+        margin-bottom: 5px; 
+        margin-top: -2% ;
+    }
+    .wrapper-page{
+        text-align: center; 
+        background-color: white;
+    }
+    @media screen and (max-width: 1200px) {
+        .axis-x {
+            margin-left: 7%;
+        }
+        #id_evaluation{
+            margin-left: -320px;
+        }
+    }
+    @media screen and (max-width: 1024px) {
+        .axis-x {
+            margin-left: 8%;
+        }
+        #id_evaluation{
+            margin-left: -320px;
+        }
+    }
+    @media screen and (max-width: 768px) {
+        .axis-x {
+            margin-left: 11%;
+        }
+        #id_evaluation{
+            margin-left: -320px;
+        }
+    }
+    .dis-flex{
+        display: flex;
+    }
+    .dis-flex-wrap{
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .filter-option{
+        min-width: 360px;
+    }
+    .filter-option-checkbox{
+        min-width: 180px;
+        padding-left: 15px;
+    }
+    .valuation-option{
+        min-width: 180px;
+        padding-left: 9px;
+    }
+    .valuation-label {
+        min-width: 180px;
+        padding-left: 15px;
+    }
+    .filter-option-picklist{
+        min-width: 180px;
+    }
+    .align-right {
+        text-align: right;   
+    }
+    .margin-left8 {
+        margin-left: 8px;
+    }
+    .margin-left20 {
+        margin-left: 20px;
+    }
+    .hide {
+        display: none !important;
+    }
+    /* .bPageBlock {
+        border: none !important;
+        background-color: #FFFFFF !important;
+    } */
+</style>
+</head>
+<body ng-controller="MainController">
+    <div class="wrapper-page">
+        <div class="slds-grid">
+            <div class="slds-col">
+                <div class="slds-combobox_container" on-deselect="axisSetDropDown = false;">
+                    <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click" aria-expanded="true" aria-haspopup="listbox" role="combobox" ng-class="{'slds-is-open' : axisSetDropDown}">
+                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" ng-click="axisSetDropDown = !axisSetDropDown;">
+                            <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" title="{{selectedAxisSet.label}}"
+                                autoComplete="off" role="textbox" readonly="readonly" value="{{selectedAxisSet.label}}"
+                            />
+                            <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right">
+                                <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+                                    <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#down')}"></use>
+                                </svg>
+                            </span>
+                        </div>
+                        <div role="listbox" class="slds-dropdown slds-dropdown_fluid">
+                            <ul class="slds-listbox slds-listbox_vertical slds-scrollable_y" role="presentation" style="max-height: 250px;">
+                                <li role="presentation" class="slds-listbox__item" ng-repeat="item in axisSetList" ng-click="selectAxisSet(item)">
+                                    <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center" role="option"
+                                        ng-class="{'slds-is-selected' : selectedAxisSet.value == item.value }"
+                                    >
+                                        <span class="slds-media__figure">
+                                            <svg class="slds-icon slds-icon_x-small slds-listbox__icon-selected" aria-hidden="true">
+                                                <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#check')}"></use>
+                                            </svg>
+                                        </span>
+                                        <span class="slds-media__body" style="text-align: left;">
+                                            <span class="slds-truncate" title="{{item.label}}">
+                                                {{item.label}}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col align-right">
+                <!-- <apex:pageBlock rendered="{!$User.UITheme == 'Theme4d'}"> -->
+                    <button class="slds-button slds-button_neutral slds-m-right_small" id="btnNewPage" >全画面で開く</button>
+                    <button class="slds-button slds-button_neutral slds-m-right_small" id="btnSave"
+                        ng-if="{!$Permission.ermt__Can_download_chart_image}"
+                    >ダウンロード</button>
+                <!-- </apex:pageBlock>
+                <apex:pageBlock rendered="{!$User.UITheme != 'Theme4d'}">
+                    <button class="slds-button slds-button_neutral slds-m-right_small" id="btnSave" >ダウンロード</button>
+                </apex:pageBlock> -->
+            </div>
+        </div>
+        <div id="section" class="slds-section slds-m-right_small">
+            <h3 class="slds-section__title">
+                <button id="sectionButton" aria-controls="expando-unique-id" aria-expanded="false" class="slds-button slds-section__title-action">
+                    <svg class="slds-section__title-action-icon slds-button__icon slds-button__icon_left" aria-hidden="true">
+                        <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#switch')}"></use>
+                    </svg>
+                    <span class="slds-truncate" title="Section Title">フィルター</span>
+                </button>
+            </h3>
+            <div aria-hidden="true" class="slds-section__content" id="expando-unique-id">
+                <!-- <div class="slds-m-left_small" ng-if="{!$Permission.ermt__Can_download_chart_image}"> -->
+                <div class="slds-m-left_small">
+                    <div class="dis-flex">
+                        <div class="dis-flex filter-option margin-left8">
+                            <div class="dis-flex filter-option-checkbox">
+                                <p class="slds-m-top_x-small">{{timingLabel}}</p>
+                            </div>
+                            <div class="dis-flex filter-option-picklist">
+                                <div class="slds-form-element__control slds-m-top_x-small">
+                                    <div class="slds-combobox_container slds-size_small" on-deselect="evaluationShowDropDown = false;">
+                                    <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click" ng-class="{'slds-is-open' : evaluationShowDropDown}" aria-expanded="true" aria-haspopup="listbox" role="combobox">
+                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" ng-click="evaluationShowDropDown = !evaluationShowDropDown;">
+                                        <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="combobox-unique-id-26" aria-controls="listbox-unique-id" autoComplete="off" role="textbox" placeholder="選択肢を選んでください。" readonly="" value="{{selectedValuation.label}}" />
+                                        <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right" title="Description of icon when needed">
+                                            <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+                                            <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#down')}"></use>
+                                            </svg>
+                                        </span>
+                                        </div>
+                                        <div id="listbox-unique-id" role="listbox" class="slds-dropdown slds-dropdown_fluid">
+                                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                            <li role="presentation" class="slds-listbox__item" ng-repeat="item in evaluationList" ng-click="ChangeEvaluation(item)">
+                                            <div id="listbox-option-unique-id-01" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center" ng-class="{'slds-is-selected' : selectedValuation == item }" role="option">
+                                                <span class="slds-media__figure">
+                                                <svg class="slds-icon slds-icon_x-small slds-listbox__icon-selected" aria-hidden="true">
+                                                    <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#check')}"></use>
+                                                </svg>
+                                                </span>
+                                                <span class="slds-media__body" style="text-align: left;">
+                                                    <span class="slds-truncate" title="{{item.label}}" ng-bind-html="item.label"></span>
+                                                </span>
+                                            </div>
+                                            </li>
+                                        </ul>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dis-flex filter-option margin-left8">
+                            <div class="dis-flex filter-option-checkbox">
+                                <p class="slds-m-top_x-small">プロジェクト</p>
+                            </div>
+                            <div class="dis-flex filter-option-picklist">
+                                <div class="slds-form-element__control slds-m-top_x-small slds-m-left_x-small">
+                                    <div class="slds-combobox_container slds-size_small" on-deselect="projectShowDropDown = false;">
+                                        <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click" aria-expanded="true" aria-haspopup="listbox" role="combobox" ng-class="{'slds-is-open' : projectShowDropDown}">
+                                            <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" ng-click="projectShowDropDown = !projectShowDropDown;">
+                                                <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="combobox-unique-id-26" aria-controls="listbox-unique-id" autoComplete="off" role="textbox" placeholder="選択肢を選んでください。" readonly="readonly" value="{{listProjectSelectedName.join(', ')}}" 
+                                                />
+                                                <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right">
+                                                    <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+                                                        <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#down')}"></use>
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                            <div id="s" role="listbox" class="slds-dropdown slds-dropdown_fluid">
+                                                <ul class="slds-listbox slds-listbox_vertical slds-scrollable_y" role="presentation" style="max-height: 250px;">
+                                                    <li role="presentation" class="slds-listbox__item" ng-repeat="item in listProjects" ng-click="selectProject(item.Id)">
+                                                        <div id="listbox-option-unique-id-01" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center" role="option"
+                                                        ng-class="{'slds-is-selected' : listProjectSelected.indexOf(item.Id) !== -1 }">
+                                                            <span class="slds-media__figure">
+                                                                <svg class="slds-icon slds-icon_x-small slds-listbox__icon-selected" aria-hidden="true">
+                                                                    <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#check')}"></use>
+                                                                </svg>
+                                                            </span>
+                                                            <span class="slds-media__body" style="text-align: left;">
+                                                                <span class="slds-truncate" title="{{item.Name}}" ng-bind-html="item.Name">
+                                                                </span>
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>  
+                                    </div>  
+                                </div>  
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dis-flex-wrap">
+                        <div ng-repeat="classy in classiList">
+                            <div class="dis-flex filter-option">
+                                <div class="dis-flex filter-option-checkbox">
+                                    <div class="slds-checkbox slds-m-top_small">
+                                        <input type="checkbox" name="options" id="checkbox-classi-{{$index}}" value="checkbox-classi-{{$index}}" ng-model="classy.isGetAll"/>
+                                        <label class="slds-checkbox__label" for="checkbox-classi-{{$index}}">
+                                            <span class="slds-checkbox_faux"></span>
+                                            <span class="slds-form-element__label">{{classy.Name}}</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="dis-flex filter-option-picklist">
+                                    <div class="slds-form-element__control slds-m-around_x-small">
+                                        <div class="slds-combobox_container slds-size_small" on-deselect="classy.showDropDown = false;">
+                                            <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click" aria-expanded="true" aria-haspopup="listbox" role="combobox" ng-class="{'slds-is-open' : classy.showDropDown}">
+                                                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none" ng-click="classy.showDropDown = !classy.showDropDown;">
+                                                    <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="combobox-unique-id-26" aria-controls="listbox-unique-id" autoComplete="off" role="textbox" placeholder="選択肢を選んでください。" readonly="readonly" value="{{classy.selectedValueString.join(', ')}}" 
+                                                    />
+                                                    <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right">
+                                                        <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+                                                            <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#down')}"></use>
+                                                        </svg>
+                                                    </span>
+                                                </div>
+                                                <div id="listbox-unique-id" role="listbox" class="slds-dropdown slds-dropdown_fluid">
+                                                    <ul class="slds-listbox slds-listbox_vertical slds-scrollable_y" role="presentation" style="max-height: 250px;">
+                                                        <li role="presentation" class="slds-listbox__item" ng-repeat="item in classy.ermt__MClassifications_del__r" ng-click="selectValue(classy, item.Id)">
+                                                            <div id="listbox-option-unique-id-01" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center" role="option"
+                                                            ng-class="{'slds-is-selected' : classy.selectedValue.indexOf(item.Id) !== -1 }">
+                                                                <span class="slds-media__figure">
+                                                                    <svg class="slds-icon slds-icon_x-small slds-listbox__icon-selected" aria-hidden="true">
+                                                                        <use href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#check')}"></use>
+                                                                    </svg>
+                                                                </span>
+                                                                <span class="slds-media__body" style="text-align: left;">
+                                                                    <span class="slds-truncate" title="{{item.ermt__Label__c}}" ng-bind-html="item.ermt__Label__c">
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-m-top_xx-small">
+                        <button class="slds-button slds-button_neutral slds-m-right_x-large" ng-click="refreshAxis()">フィルター</button>
+                    </div> 
+                </div>
+            </div>
+        </div>
+
+        <div class="slds-m-top_x-large">
+            <div class="center-content dis-flex">
+                <div class="axis-y dis-flex min-width-y">
+                    <p class="label-axis-y">{{yLabel}}</p>
+                    <ul>
+                        <li ng-repeat="y in yAxis | orderBy:'ermt__ViewNo__c':true"><span class="num">{{y.ermt__ViewNo__c}}</span></li>
+                    </ul>
+                </div>
+                <!-- end left asix y-->
+                <div class="dis-flex margin-left20">
+                    <ul class="grid" id="gridId">
+                    </ul>
+                </div>
+            </div>
+            <div class="center-content dis-flex">
+                <div class="axis-y dis-flex min-width-y">
+                </div>
+                <div class="axis-x dis-flex margin-left20">
+                    <p class="label-axis-x">{{xLabel}}</p>
+                    <ul>
+                        <li class="li-x" ng-repeat="x in xAxis | orderBy:'ermt__ViewNo__c'"><span class="num">{{x.ermt__ViewNo__c}}</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    <!-- end asix x  -->
+    </div>
+<!--end wrapper-page-->
+</body>
+<script type="text/javascript">
+var projectName = '';
+
+$(function() { 
+    $("#sectionButton").click(function() {
+        var sec = document.getElementById("section");
+        if (sec.classList.contains("slds-is-open")){
+            sec.classList.remove("slds-is-open");
+        } else {
+            sec.classList.add("slds-is-open");
+        }
+    });
+    svg4everybody();
+
+    $("#btnNewPage").click(function() { 
+        // window.open('/one/one.app#/alohaRedirect/apex/ERMT_RiskMatrixGeneralPage?isFullScreen=1');
+        window.open('/apex/ERMT_RiskMatrixGeneralPage?isFullScreen=1');
+    });
+    var url = window.location.href;
+    var isFullScreen = getParameterByName('isFullScreen', url);
+    
+    if (isFullScreen == '1'){
+        document.getElementById("btnNewPage").classList.add("hide");
+    } else {
+        document.getElementById("btnNewPage").classList.remove("hide");
+    }
+
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    $("#btnSave").click(function() { 
+
+        document.getElementById("btnSave").style.visibility = 'hidden';
+        document.getElementById("btnNewPage").style.visibility = 'hidden';
+
+        html2canvas(document.body, {
+            onrendered: function(canvas) {
+                theCanvas = canvas;
+                var dateString = moment().format('YYYYMMDDHHmmss');
+                if (canvas.msToBlob) { //for IE
+                    var blob = canvas.msToBlob();
+                    window.navigator.msSaveBlob(blob, dateString + ".png");
+                } 
+                else{
+                    canvas.toBlob(function(blob) {
+                        saveAs(blob, dateString + ".png"); 
+                    });
+                }
+
+                document.getElementById("btnSave").style.visibility = 'visible';
+                document.getElementById("btnNewPage").style.visibility = 'visible';
+            }
+        });
+    });
+}); 
+
+$(document).ready(function(){
+});
+defaultColor ="#FFFFFF"
+
+var app = angular.module("SLDSApp",['ngSanitize']);
+app.directive('onDeselect', [ '$document', function($document) {
+  
+  return {
+    scope: { onDeselect: '&' },
+    link: function(scope, element, attrs) {
+
+      var clickHandler = function(e) {
+        var target = e.target;
+        while (target) {
+          if (element[0] === target) return;
+          target = target.parentElement;
+        }
+        
+        scope.$apply(function() {
+          scope.onDeselect({$event:e});
+        });
+      };
+
+      $document.on('click', clickHandler);
+
+      // clean handler on destroy
+      scope.$on('$destroy', function() {
+        $document.off('click', clickHandler);
+      });
+    }
+  };
+}]);
+app.controller('MainController', function($scope) {
+    $scope.checkVFStandAlone = true;
+    $scope.timingLabel = '';
+    $scope.xLabel = '';
+    $scope.yLabel = '';
+    $scope.likeLabel = '';
+    $scope.impactLabel = '';
+    $scope.listProjects = [];
+    $scope.listProjectSelected = [];
+    $scope.listProjectSelectedName = [];
+    $scope.xAxis = [];
+    $scope.yAxis = [];
+    $scope.riskData = [];
+    $scope.riskList = [];
+    $scope.evaluationList = [];
+    $scope.selectedValuation = {label:"なし" , value: "なし"};
+    $scope.projectShowDropDown = false;
+    $scope.evaluationShowDropDown = false;
+    $scope.axisSetList = [];
+    $scope.selectedAxisSet = {label: '' , value: ''};
+    $scope.axisSetDropDown = false;
+    /* Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getCellColor}', [], function(result, event) {
+        $scope.CellColorList = result; 
+        $scope.$apply();
+    }); */
+
+    Visualforce.remoting.Manager.invokeAction(
+    '{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getProjects}', 
+    function(result, event) {
+        $scope.listProjects = result;
+        $scope.status =  event.status;
+        $scope.$apply();
+    });
+
+    Visualforce.remoting.Manager.invokeAction(
+    '{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getLabelMetadata}', 
+    function(result, event) {
+        $scope.likeLabel = result.xLabel;
+        $scope.impactLabel = result.yLabel;
+        $scope.xLabel = $scope.likeLabel;
+        $scope.yLabel = $scope.impactLabel;
+        $scope.timingLabel = result.timingLabel;
+
+        // 軸の設定の選択リストの作成
+        var item = {label: 'X軸：' + $scope.likeLabel + '、Y軸：' + $scope.impactLabel , value: '1'};
+        $scope.axisSetList.push(item);
+        $scope.selectedAxisSet = item;
+        item = {label: 'X軸：' + $scope.impactLabel + '、Y軸：' + $scope.likeLabel , value: '2'};
+        $scope.axisSetList.push(item);
+
+        $scope.$apply();
+    });
+
+    Visualforce.remoting.Manager.invokeAction(
+    '{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getClassificationList}',
+    function(result, event) {
+        angular.forEach(result, function(a) {
+            a.selectedValue = [];
+            a.selectedValueString = [];
+            a.isGetAll = false;
+        });
+        $scope.classiList = result;
+        $scope.status =  event.status;
+        $scope.$apply();
+    });
+
+    Visualforce.remoting.Manager.invokeAction(
+    '{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getEvaluationList}',
+    function(result, event) {
+        angular.forEach(result, function(a) {
+            $scope.evaluationLabel = a.ermt__ParentMClassification_del__r.ermt__Label__c;
+            $scope.evaluationList.push({label:a.ermt__Label__c , value: a.ermt__Label__c});
+        });
+        $scope.evaluationList.unshift({label:"なし" , value: "なし"});
+        $scope.selectedValuation = $scope.evaluationList[0];
+        $scope.$apply();
+    });
+
+    $scope.selectValue = function(classy, itemId) {
+        if (itemId) {
+            const index = classy.selectedValue.indexOf(itemId);
+
+            if (index === -1) {
+                classy.selectedValue.push(itemId);
+            } else {
+                classy.selectedValue = classy.selectedValue.filter(function (selectedValue) { return selectedValue !== itemId; });
+            }
+
+            classy.selectedValueString = classy.ermt__MClassifications_del__r
+                .filter(function (item) { return classy.selectedValue.indexOf(item.Id) !== -1; })
+                .map(function(item) {return $('<textarea />').html(item.ermt__Label__c).text()});
+        }
+    }
+
+    $scope.selectProject = function(itemId) {
+        listProjectSelected = $scope.listProjectSelected;
+        var project = null;
+        var listProjects = $scope.listProjects;
+        var listProjectSelectedName = $scope.listProjectSelectedName;
+        for (var x in listProjects){
+            if (listProjects[x].Id == itemId) {
+                project = listProjects[x];
+                break;
+            }
+        }
+        if (itemId) {
+            const index = listProjectSelected.indexOf(itemId);
+            if (index === -1) {
+                listProjectSelected.push(itemId);
+                listProjectSelectedName.push(project.Name);
+            } else {
+                listProjectSelected = listProjectSelected.filter(function (selectedValue) { return selectedValue !== itemId; });
+                listProjectSelectedName = listProjectSelectedName.filter(function (value) { return value !== project.Name; });
+            }
+            $scope.listProjectSelected = listProjectSelected;
+            $scope.listProjectSelectedName = listProjectSelectedName;
+        }
+    }
+
+    $scope.ChangeEvaluation = function(e){
+        $scope.selectedValuation = e;
+    }
+
+    // 軸の設定の選択時
+    $scope.selectAxisSet = function(e) {
+        $scope.selectedAxisSet = e;
+
+        // 軸ラベルの設定
+        $scope.xLabel = $scope.likeLabel;
+        $scope.yLabel = $scope.impactLabel;
+
+        // 軸の設定によって、X軸とY軸を反転
+        if ($scope.selectedAxisSet.value === '2') {
+            $scope.xLabel = $scope.impactLabel;
+            $scope.yLabel = $scope.likeLabel;
+        }
+
+        // 軸の最新表示
+        $scope.refreshAxis();
+    };
+
+
+    // 軸の最新表示
+    $scope.refreshAxis = function() {
+        Visualforce.remoting.Manager.invokeAction(
+        '{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getAxisLabel}',
+        $scope.listProjectSelected,
+        function(result, event) {
+            if(event.status){
+                var xs = result.xAxis;
+                var ys = result.yAxis;
+
+                // 軸の設定によって、X軸とY軸を反転
+                if ($scope.selectedAxisSet.value === '2') {
+                    xs = result.yAxis;
+                    ys = result.xAxis;
+                }
+
+                // ceil value x, y when needed
+                /* for (var i in xs){
+                    xs[i].ermt__ViewNo__c = Math.ceil(xs[i].ermt__ViewNo__c);
+                }
+                for (var i in ys){
+                    ys[i].ermt__ViewNo__c = Math.ceil(ys[i].ermt__ViewNo__c);
+                } */
+                
+                var xs = _(xs).groupBy(function (item) {
+                    return item.ermt__ViewNo__c;
+                }).sortBy(function (group) {
+                    return group[0].ermt__ViewNo__c;
+                }).value();
+                var ys = _(ys).groupBy(function (item) {
+                    return item.ermt__ViewNo__c;
+                }).sortBy(function (group) {
+                    return group[0].ermt__ViewNo__c;
+                }).value();
+                
+                var xAxis = [];
+                var yAxis = [];
+                for (var x in xs) {
+                    if (xs[x][0]){
+                        xAxis.push(xs[x][0]);
+                    }
+                }
+                for (var y in ys) {
+                    if (ys[y][0]){
+                        yAxis.push(ys[y][0]);
+                    }
+                }
+                $scope.xAxis = xAxis;
+                $scope.yAxis = yAxis;
+                $scope.viewNo = [];
+
+                $('.grid').empty();
+                for(var i = $scope.yAxis.length; i >= 1; i--){
+                    for(var j = 1; j <= $scope.xAxis.length; j++){
+                        var colorCell;
+                        var colorLink;
+                        /* for(var k = 0 ;k < $scope.CellColorList.length ; k++ ){
+
+                            if($scope.yAxis[i-1].Id == $scope.CellColorList[k].ermt__YCordinate__c && $scope.xAxis[j-1].Id == $scope.CellColorList[k].ermt__XCordinate__c){
+                                colorCell = $scope.CellColorList[k].ermt__ColorCode__c;
+                                colorLink = $scope.CellColorList[k].ermt__ColorLinkCode__c;
+                                break;
+                            }else{
+                                colorCell = defaultColor;
+                                colorLink = defaultColor;
+                            }
+                        } */
+                        colorCell = defaultColor;
+                        colorLink = defaultColor;
+                        $scope.viewNo.push({x: j , y :i , color: colorLink ? colorLink : defaultColor});
+                        $('.grid').append('<li><div id="cell-'+j+'-'+i+'" class="wrapper-column" style= "background-color: '+ colorCell + '"></div></li>');
+                    }
+                }
+                $scope.$apply();
+                const grid_wid = Math.floor($( window ).width() * 0.7) + 1;
+                $('.grid li').css({
+                    'width': grid_wid/$scope.xAxis.length,
+                    'height': grid_wid/$scope.yAxis.length * 0.8 - 1
+                });
+                var wid_col = $('.grid li').outerWidth();
+                var hei_col = $('.grid li').outerHeight();
+                var wid_yAxis = $('.axis-y').outerWidth();
+                $('.grid').css({
+                    'width': grid_wid + 1 + 'px',
+                    'height': hei_col*$scope.yAxis.length + 2 + 'px'
+                });
+
+                $('.wrapper-page').css({
+                    'width': '100%'
+                });
+                $('.axis-y li').css({
+                    'height': hei_col + 'px',
+                    'line-height': hei_col + 'px'
+                })
+                $('.axis-x').css({
+                    'width': grid_wid
+                });
+                $('.axis-x li').css({
+                    'width': grid_wid/($scope.xAxis.length)
+                })
+            }
+            $scope.refreshChart();
+        });
+    };
+
+    $scope.refreshChart = function() {
+        if ($scope.status) {
+            //Clear all a tag in grid
+            var elements = document.getElementsByTagName('a');
+            while (elements[0]) elements[0].parentNode.removeChild(elements[0]);
+
+            //Filtered Risk list
+            var parentClassiIds = [];
+            var childClassiIds = [];
+            angular.forEach($scope.classiList, function(a) {
+                if(a.isGetAll){
+                    parentClassiIds.push(a.Id);
+                }
+                else if(a.selectedValue){
+                    angular.forEach(a.selectedValue, function(b) {
+                        childClassiIds.push(b);
+                    });
+                }
+            });
+
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getRiskOfProjectByClassification}',
+                $scope.listProjectSelected,
+                parentClassiIds,
+                childClassiIds,
+                function(result, event) {
+                    if (event.status) {
+                        $scope.riskList = result;
+                        Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.ERMT_RiskMatrixGeneralCX.getAverageRiskAssessment}',
+                            $scope.listProjectSelected,
+                            $scope.selectedValuation.value,
+                            function(result2, event2) {
+                                if (event2.status) {
+                                    var risksTmp = _(result2).groupBy(function (item) {
+                                        return item.ermt__Risk__c;
+                                    }).value();
+
+                                    var riskIds = Object.keys(risksTmp);   
+                                    var listData = [];
+                                    for (var i in riskIds){
+                                        var id = riskIds[i];
+                                        var listAssess = risksTmp[id];
+                                        var data = {
+                                            'ermt__Risk__c': id,
+                                            'avgImpact': 0,
+                                            'avgEva': 0,
+                                            'avgLike': 0,
+                                        }
+                                        for (var j in listAssess){
+                                            if (listAssess[j].DeveloperName == 'ConsequenceGroup') data.avgImpact = listAssess[j].point;
+                                            if (listAssess[j].DeveloperName == 'EvaluationPeriodGroup') data.avgEva = listAssess[j].point;
+                                            if (listAssess[j].DeveloperName == 'LikelihoodGroup') data.avgLike = listAssess[j].point;
+                                        }
+                                        listData.push(data);
+                                    }
+                                    $scope.riskData = _.intersectionWith(_.cloneDeep($scope.riskList), listData, function(x, y) {
+                                        return x.Id === y.ermt__Risk__c && _.assign(x, y);
+                                    });
+                                    
+                                    angular.forEach($scope.riskData, function(item) {
+                                        var x = item.avgLike ? _.ceil(item.avgLike) : 1;
+                                        var y = item.avgImpact ? _.ceil(item.avgImpact) : 1;
+
+                                        // 軸の設定によって、X軸とY軸を反転
+                                        if ($scope.selectedAxisSet.value === '2') {
+                                            var bk = x;
+                                            x = y;
+                                            y = bk;
+                                        }
+
+                                        var color;
+                                        for (var i = 0; i < $scope.viewNo.length; i++) {
+                                            if (x == $scope.viewNo[i].x && y == $scope.viewNo[i].y) {
+                                                color = $scope.viewNo[i].color;
+                                                break;
+                                            }
+                                        }
+
+                                        var ox = 0;
+                                        var oy = 0;
+                                        x = item.avgLike ? _.ceil(item.avgLike, 2) : 1;
+                                        y = item.avgImpact ? _.ceil(item.avgImpact, 2) : 1;
+
+                                        // 軸の設定によって、X軸とY軸を反転
+                                        if ($scope.selectedAxisSet.value === '2') {
+                                            var bk = x;
+                                            x = y;
+                                            y = bk;
+                                        }
+
+                                        for(var j = 0; j <= $scope.xAxis.length; j++){
+                                            if ($scope.xAxis[j]) {
+                                                if (x - $scope.xAxis[j].ermt__ViewNo__c <= 0) {
+                                                    ox = j + 1;
+                                                    break;
+                                                } 
+                                            }
+                                        }
+                                        for(var j = 0; j <= $scope.yAxis.length; j++){
+                                            if ($scope.yAxis[j]){
+                                                if (y - $scope.yAxis[j].ermt__ViewNo__c <= 0) {
+                                                    oy = j + 1;
+                                                    break;
+                                                } 
+                                            }
+                                        }
+
+                                        $('#cell-' + ox + '-' + oy).append('<a id="link-' + item.Id + '" class="record-link" href="/' + item.Id + '" title="" target="_blank" style="background-color: ' + color + ' ; color : black">' + item.Name + '</a>');
+
+                                        var avgLike = item.avgLike ? _.ceil(item.avgLike, 2) : 0;
+                                        var avgImpact = item.avgImpact ? _.ceil(item.avgImpact, 2) : 0;
+
+                                        // 軸の設定によって、X軸とY軸を反転
+                                        if ($scope.selectedAxisSet.value === '2') {
+                                            var bk = avgLike;
+                                            avgLike = avgImpact;
+                                            avgImpact = bk;
+                                        }
+
+                                        $('#link-' + item.Id).tooltip({
+                                            content: '<p>' + item.Name + '<br/>' + $scope.xLabel + ': ' + avgLike + '<br/>' + $scope.yLabel + ': ' + avgImpact + '</p>'
+                                        });
+                                    });
+                                }
+                            }
+                        );
+                    }
+                }
+            );
+        }
+    };
+
+    // 軸の最新表示
+    $scope.refreshAxis();
+});
+</script>
+</html>
+</apex:page>

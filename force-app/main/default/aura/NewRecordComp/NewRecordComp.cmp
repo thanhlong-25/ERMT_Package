@@ -1,0 +1,13 @@
+<aura:component >
+	<lightning:overlayLibrary aura:id="overlayLib"/>
+    <aura:attribute name="objType" type="String"/>
+    <aura:attribute name="modalRecordId" type="String"/>
+	<lightning:recordForm
+		 aura:id="recordForm"
+         objectApiName="{!v.objType}" 
+         layoutType="Full"
+         columns="2"
+         mode="edit"
+         oncancel="{!c.onCancel}"
+         onsuccess="{!c.onSuccess}"/>
+</aura:component>

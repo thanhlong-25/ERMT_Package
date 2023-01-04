@@ -1,0 +1,65 @@
+<aura:component >
+	
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	
+	<aura:attribute name="question" type="Question__c"/>
+	<aura:attribute name="answerOptions" type="List"/>
+	<aura:attribute name="radioValue" type="string"/>
+	<aura:attribute name="dateValue" type="string"/>
+	<aura:attribute name="textValue" type="string"/> 
+	<aura:attribute name="disable" type="boolean" default="true"/>
+
+	<aura:attribute name="answers" type="List" default="[]"/>
+
+	<aura:attribute name="disableDate" type="boolean" default="true"/>
+	<aura:attribute name="dateValueRequired" type="boolean" default="false"/>
+
+	<aura:handler event="c:SaveChecklistEvent" action="{!c.validate}"/>
+
+	<aura:attribute name="reRender" type="Boolean" default="true" />
+
+	<aura:attribute name="supplementImageUrl1" type="String" default="" access="private" />
+	<aura:attribute name="supplementImageUrl2" type="String" default="" access="private" />
+
+	<div>
+		<div class="question-container">
+			<div class="title-container slds-text-title_bold">{! v.question.ermt__Title__c}</div>
+
+			<aura:if isTrue="{!or(not(empty(v.supplementImageUrl1)),not(empty(v.supplementImageUrl2)))}">
+				<div class="images-container slds-grid_pull-padded-x-small slds-grid slds-wrap">
+					<aura:if isTrue="{!not(empty(v.supplementImageUrl1))}">
+						<div class="image-container slds-p-horizontal_x-small slds-col slds-size--1-of-1 slds-large-size--1-of-2">
+							<img src="{!v.supplementImageUrl1}" />
+						</div>
+					</aura:if>
+					<aura:if isTrue="{!not(empty(v.supplementImageUrl2))}">
+						<div class="image-container slds-p-horizontal_x-small slds-col slds-size--1-of-1 slds-large-size--1-of-2">
+							<img src="{!v.supplementImageUrl2}" />
+						</div>
+					</aura:if>
+				</div>
+			</aura:if>
+
+			<div class="radio-container">
+				<lightning:radioGroup name="{!'radioName' + v.question.Id}"
+                  	label=""
+                  	options="{! v.answerOptions }"
+                  	value="{! v.radioValue }"
+                  	type="radio"
+					onchange="{! c.handleRadioChange }"
+					disabled="{!v.disable}"
+                  />
+          	</div>
+
+			<aura:if isTrue="{!v.reRender}">
+				<div class="datePicker-container">
+					<lightning:input aura:id="ipDateId" type="date" required="{!v.dateValueRequired}" value="{!v.dateValue}" label="{!v.question.ermt__Label_Date_field__c}" disabled="{!v.disableDate || v.disable}" onchange="{! c.handleDateChange }" />
+				</div>
+
+				<div class="textarea-container">
+					<lightning:textarea disabled="{!v.disable}" aura:id="textCommentId" required="{!v.dateValueRequired}" class="textarea" name="{!v.question.ermt__Label_Textarea__c}" value="{!v.textValue}" label="{!v.question.ermt__Label_Textarea__c}" placeholder="" onchange="{! c.handleTextChange }"/>
+				</div>
+			</aura:if>
+	  	</div>
+  	</div>
+</aura:component>

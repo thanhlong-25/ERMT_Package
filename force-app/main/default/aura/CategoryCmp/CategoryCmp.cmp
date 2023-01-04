@@ -1,0 +1,36 @@
+<aura:component controller="ERMT_CategoryCC">
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:attribute name="category" type="Category__c"/>
+	<aura:attribute name="sections" type="List" default="[]"/>
+	<aura:attribute name="categoryTitle" type="string" default=""/>
+	<aura:attribute name="answers" type="List" default="[]"/>
+	<aura:attribute name="checklistId" type="string" default=""/>
+	<aura:attribute name="disable" type="boolean" default="true"/>
+	<aura:attribute name="hasPermission" type="boolean" default="false"/>
+
+	<aura:registerEvent name="saveChecklistEvent" type="c:SaveChecklistEvent"/>
+
+	<div>
+		<div class="category-container">
+			<div class="category-header">
+				<div class="category-title">
+					<h1 class="slds-text-heading_medium">{!v.categoryTitle}</h1>
+				</div>
+				<aura:if isTrue="{! v.hasPermission}">
+					<aura:if isTrue="{! !v.disable}">
+						<div class="category-savebutton">
+							<lightning:button variant="brand" label="{!$Label.c.Save}" onclick="{!c.saveChecklist}"/>
+						</div>
+					</aura:if>
+				</aura:if>
+			</div>
+			<aura:if  isTrue="{! !empty(v.sections)}">
+				<aura:iteration items="{!v.sections}" var="section">
+					
+					<c:SectionCmp disable="{!v.disable}" answers="{!v.answers}" section="{!section}"/>
+
+				</aura:iteration>
+			</aura:if>
+		</div>
+	</div>	
+</aura:component>

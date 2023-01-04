@@ -1,0 +1,14 @@
+<aura:component controller="CustomRelatedListCC" implements="force:lightningQuickAction,force:hasRecordId">
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<lightning:overlayLibrary aura:id="overlayLib"/>
+
+	<lightning:recordEditForm objectApiName="ermt__Risk__c">
+		<div class="slds-m-bottom_medium">
+			<lightning:button variant="brand" label="Copy data" title="Copy data" onclick="{! c.copyClick }" />
+			<lightning:button variant="brand" label="New Project" title="New Project" onclick="{! c.newClick }" />
+		</div>
+		<lightning:inputField fieldName="ermt__Project__c" aura:id='projectField'/>
+		
+	</lightning:recordEditForm>
+
+</aura:component>

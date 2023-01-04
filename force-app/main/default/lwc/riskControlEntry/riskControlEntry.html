@@ -1,0 +1,224 @@
+<template>
+    <template if:true={isInitialized}>
+        <lightning-card icon-name="custom:custom70">
+            <div slot="title">
+                <span class="title">{label.title}</span>
+            </div>
+            <div class="">
+                <lightning-spinner if:true={processing} variant="brand"></lightning-spinner>
+                <div if:true={errorMessages} class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+                    <lightning-icon icon-name="utility:error" size="small" variant="inverse"></lightning-icon>
+                    <h2>
+                        <template for:each={errorMessages} for:item="errMsg">
+                            <p key={errMsg}>{errMsg}</p>
+                        </template>
+                    </h2>
+                    <div class="slds-notify__close">
+                        <button class="slds-button slds-button_icon slds-button_icon-small slds-button_icon-inverse"
+                            onclick={handleErrorAlertCloseClick}
+                        >
+                            <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                        </button>
+                    </div>
+                </div>
+                <div class="slds-form-element slds-form-element_readonly">
+                    <span class="slds-form-element__label">{label.risk}</span>
+                    <div class="slds-form-element__control">
+                        <div if:true={risk} class="slds-form-element__static">{risk.name}</div>
+                    </div>
+                </div>
+                <div class="slds-form-element">
+                    <label class="slds-form-element__label" for="form-element-01">{label.control}</label>
+                    <div class="slds-form-element__control">
+                        <lightning-accordion allow-multiple-sections-open
+                            onsectiontoggle={handleSearchCondSectionToggle}
+                            active-section-name={searchCondActiveSections}
+                        >
+                            <lightning-accordion-section name="searchCond" label={label.searchCond}>
+                                <div class="slds-border_top slds-border_bottom">
+                                    <c-record-search-condition
+                                        object-name={controlObjName}
+                                        onsearch={handleSearch}
+                                        oncancel={handleSearchCancel}
+                                    ></c-record-search-condition>
+                                </div>
+                            </lightning-accordion-section>
+                        </lightning-accordion>
+                        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-end slds-m-bottom_xx-small">
+                            <div class="slds-col slds-size_7-of-12">
+                                <lightning-radio-group type="button" name="registerType"
+                                    label="" variant="label-hidden"
+                                    options={registerTypeSels} value={registerType}
+                                    onchange={handleRegisterTypeChange}></lightning-radio-group>
+                            </div>
+                            <div class="slds-col slds-size_4-of-12">
+                                <lightning-input type="search" name="otherSearchCond"
+                                    label="" variant="label-hidden"
+                                    value={otherSearchCond}
+                                    onchange={handleOtherSearchCondChange}></lightning-input>
+                            </div>
+                        </div>
+                    </div>
+                    <template if:true={controlList.info}>
+                        <div class="slds-scrollable_y slds-m-bottom_xx-small controlListWrap">
+                            <lightning-datatable
+                                columns={controlList.info.fields}
+                                data={controlList.info.records}
+                                key-field="id"
+                                show-row-number-column
+                                row-number-offset={controlList.info.pageInfo.rowNumberOffset}
+                                sorted-by={controlList.sortFieldName}
+                                sorted-direction={controlList.sortDirection}
+                                default-sort-direction={controlList.defaultSortDirection}
+                                onsort={handleControlListSort}
+                                data-name="controlList"
+                                >
+                            </lightning-datatable>
+                        </div>
+                        <template if:true={paginationVisible}>
+                            <div class="slds-grid slds-grid_align-center slds-grid_vertical-align-center">
+                                <div class="slds-col slds-size_1-of-3">
+                                    <lightning-button-group>
+                                        <lightning-button label={label.list_first} icon-name="utility:chevronleft"
+                                            disabled={notHasFirst} onclick={handleFirstPageClick}></lightning-button>
+                                        <lightning-button label={label.list_previous} icon-name="utility:chevronleft"
+                                            disabled={notHasPrevious} onclick={handlePreviousPageClick}></lightning-button>
+                                    </lightning-button-group>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <div class="slds-grid slds-grid_align-center slds-grid_vertical-align-center">
+                                        <div class="slds-col slds-size_1-of-3">
+                                            <lightning-input type="number" label="" variant="label-hidden"
+                                                name="pageNumber" value={controlList.info.pageInfo.pageNumber}
+                                                min="1" max={controlList.info.pageInfo.lastPageNumber}
+                                                onchange={handlePageNumberChange}></lightning-input>
+                                        </div>
+                                        <div class="">
+                                            ／ {controlList.info.pageInfo.lastPageNumber} {label.list_page}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <lightning-button-group>
+                                        <lightning-button label={label.list_next} icon-name="utility:chevronright"
+                                            disabled={notHasNext} icon-position="right" onclick={handleNextPageClick}></lightning-button>
+                                        <lightning-button label={label.list_last} icon-name="utility:chevronright"
+                                            disabled={notHasLast} icon-position="right" onclick={handleLastPageClick}></lightning-button>
+                                    </lightning-button-group>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+                <div class="slds-align_absolute-center slds-m-vertical_x-small slds-p-vertical_x-small slds-border_top slds-border_bottom">
+                    <lightning-button label={label.entry} icon-name="utility:new" class="slds-m-right_x-small"
+                        onclick={handleEntryClick}></lightning-button>
+                    <lightning-button label={label.delete} icon-name="utility:clear" class="slds-m-right_x-small"
+                        onclick={handleDeleteClick}></lightning-button>
+                    <lightning-button label={label.close} icon-name="utility:close" class="slds-m-right_x-small"
+                        onclick={handleCloseClick}></lightning-button>
+                </div>
+                <lightning-accordion allow-multiple-sections-open
+                    onsectiontoggle={handleControlNewCreateSectionToggle}
+                    active-section-name={controlNewCreateActiveSections}
+                >
+                    <lightning-accordion-section name="controlNewCreate" label={label.control_newCreate_title}>
+                        <div class="slds-border_top slds-border_bottom">
+                            <div>
+                                <lightning-record-edit-form
+                                    object-api-name={controlObjName}
+                                    onsubmit={handleControlNewCreateSubmit}
+                                    onsuccess={handleControlNewCreateSucess}
+                                    onerror={handleControlNewCreateError}
+                                >
+                                    <lightning-messages></lightning-messages>
+                                    <template if:true={controlNewCreateLayout} for:each={controlNewCreateLayout} for:item="section">
+                                        <div key={section} class="slds-section slds-is-open">
+                                            <h3 if:true={section.heading} class="slds-section__title slds-theme_shade">
+                                                <span class="slds-truncate slds-p-horizontal_small">{section.heading}</span>
+                                            </h3>
+                                            <div class="slds-section__content">
+                                                <template for:each={section.rows} for:item="row">
+                                                    <div key={row} class="slds-grid">
+                                                        <template for:each={row.items} for:item="item">
+                                                            <div key={item} class={section.class}>
+                                                                <lightning-input-field if:true={item.name} field-name={item.name} value={item.value}
+                                                                    required={item.required} disabled={item.disabled}></lightning-input-field>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <input type="submit" class="slds-hide" data-name="control-new-create-button" />
+                                </lightning-record-edit-form>
+                            </div>
+                            <div class="slds-align_absolute-center slds-m-vertical_x-small slds-p-vertical_x-small slds-border_top slds-border_bottom">
+                                <lightning-button label={label.control_newCreate} icon-name="utility:new" class="slds-m-right_x-small"
+                                    onclick={handleControlNewCreateSaveClick}></lightning-button>
+                                
+                            </div>
+                        </div>
+                    </lightning-accordion-section>
+                </lightning-accordion>
+            </div>
+        </lightning-card>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal" data-name="input-error-dialog">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button icon-name="utility:close" variant="base"
+                        class="slds-modal__close slds-button_icon-inverse"
+                        onclick={handleInputErrorOkClick}></lightning-button>
+                    <h2 class="slds-modal__title slds-hyphenate">{label.inputError}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center">
+                    <p data-name="message"></p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label={label.ok} variant="brand" class="slds-m-horizontal_xx-small"
+                        onclick={handleInputErrorOkClick}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal" data-name="entry-confirm-dialog">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button icon-name="utility:close" variant="base"
+                        class="slds-modal__close slds-button_icon-inverse"
+                        onclick={handleEntryCancelClick}></lightning-button>
+                    <h2 class="slds-modal__title slds-hyphenate">{label.entry}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center">
+                    <p>{label.entry_confirm}</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label={label.cancel} class="slds-m-horizontal_xx-small"
+                        onclick={handleEntryCancelClick}></lightning-button>
+                    <lightning-button label={label.ok} variant="brand" class="slds-m-horizontal_xx-small"
+                        onclick={handleEntryOkClick}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal" data-name="delete-confirm-dialog">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button icon-name="utility:close" variant="base"
+                        class="slds-modal__close slds-button_icon-inverse"
+                        onclick={handleDeleteCancelClick}></lightning-button>
+                    <h2 class="slds-modal__title slds-hyphenate">{label.delete}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center">
+                    <p>{label.delete_confirm}</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label={label.cancel} class="slds-m-horizontal_xx-small"
+                        onclick={handleDeleteCancelClick}></lightning-button>
+                    <lightning-button label={label.ok} variant="brand" class="slds-m-horizontal_xx-small"
+                        onclick={handleDeleteOkClick}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop" data-name="dialog-backdrop"></div>
+    </template>
+</template>

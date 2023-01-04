@@ -1,0 +1,47 @@
+<aura:component controller="CustomRelatedListCC" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,force:hasSObjectName" access="global">
+	<ltng:require scripts="{!$Resource.jQuery}"/>
+	<ltng:require scripts="{!$Resource.lodash}"/>
+	<aura:handler event="c:PassVariable" action="{!c.GetValueFromPassVariable}"/>
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:attribute name="parentId" type="String"/>
+	<aura:attribute name="records" type="RiskAssessment__c[]"/>
+	<aura:attribute name="displaySize" type="Integer" default="4" description="quantity of displayed field" access="global"/>
+	<aura:attribute name="isRiskDetail" type="Boolean"/>
+	<aura:attribute name="recordTypes" type="Object[]"/>
+	<aura:attribute name="recordField" type="Object"/>
+	<aura:attribute name="newRecordRecordTypeId" type="String"/>
+	<aura:handler name="change" value="{!v.parentId}" action="{!c.parentIdChange}"/>
+	<aura:method name="reloadParentId" action="{!c.doReloadParentId}"> 
+	</aura:method>
+	<aura:if isTrue="{!v.parentId}">
+		<force:recordData aura:id="recordLoader"
+			layoutType="FULL"
+			recordId="{!v.parentId}"
+			targetFields="{!v.recordField}"
+			recordUpdated="{!c.handleRecordUpdated}"
+			/>
+	</aura:if>
+
+	<div class="slds" id="panel">
+		<aura:if isTrue="{!!empty(v.recordTypes)}">
+			<div class="slds-tabs_scoped">
+				<ul class="slds-tabs_scoped__nav" role="tablist">
+					<aura:iteration items="{!v.recordTypes}" indexVar="index" var="recordType">
+						<li id="{!recordType.Id+v.recordId}" onclick="{!c.clickTab}" class="{!v.recordField.ermt__AssessmentStatus__c == recordType.DeveloperName ? 'slds-tabs_scoped__item slds-is-active' : 'slds-tabs_scoped__item'}" title="{!recordType.Name}" role="presentation"><a class="slds-tabs_scoped__link" href="javascript:void(0);" role="tab" tabindex="{!v.recordField.ermt__AssessmentStatus__c == recordType.DeveloperName ? 0 : -1}" aria-selected="{!v.recordField.ermt__AssessmentStatus__c == recordType.DeveloperName ? true : false}" aria-controls="{!'tab-scoped-'+(index+1)}" id="{!'tab-scoped-'+(index+1)+'__item'}">{!recordType.Name}</a></li>
+					</aura:iteration>
+				</ul>
+				<aura:iteration items="{!v.recordTypes}" indexVar="index" var="recordType">
+					<div id="{!recordType.Id+v.recordId+'_TabData'}" class="{!v.recordField.ermt__AssessmentStatus__c == recordType.DeveloperName ? 'slds-tabs_scoped__content slds-show' : 'slds-tabs_scoped__content slds-hide'}" role="tabpanel" aria-labelledby="{!'tab-scoped-'+(index+1)+'__item'}">
+						<aura:if isTrue="{!!empty(v.records)}"> 
+							<aura:iteration items="{!v.records}" var="record">
+								<aura:if isTrue="{!record.recordType == recordType.DeveloperName}">
+									<c:RiskAssessmentPanelComponent record="{!record.record}" showFields="{!record.fieldList}" quantity="{!v.displaySize}" isRiskDetail="{!v.isRiskDetail}" isSameRecordType="{!(v.recordField.ermt__AssessmentStatus__c == recordType.DeveloperName)}" newRecordRecordTypeId="{!v.newRecordRecordTypeId}" parent="{! this }"/>
+								</aura:if>
+							</aura:iteration> <!-- loop records data-->
+						</aura:if>
+					</div>
+				</aura:iteration>
+			</div>
+		</aura:if>
+	</div>
+</aura:component>

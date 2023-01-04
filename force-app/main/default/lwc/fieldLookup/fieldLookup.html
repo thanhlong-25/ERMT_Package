@@ -1,0 +1,71 @@
+<template>
+    <div class="slds-hide">{objectFieldName}</div>
+    <div class="slds-form-element">
+        <label if:true={label} class="slds-form-element__label" for="combobox-id">{label}</label>
+        <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div class={dropdownClass} aria-expanded={isDropdownShow} aria-haspopup="listbox" role="combobox">
+                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <input type="text" class="slds-input slds-combobox__input fieldLabel" id="combobox-id"
+                            aria-autocomplete="list" aria-controls="listbox-id" autocomplete="off" role="textbox"
+                            value={fieldLabel}
+                            title={fieldLabel}
+                            readonly={isSelected}
+                            onfocus={handleInputFocus}
+                            onblur={handleInputBlur}
+                            onkeyup={handleInputKeyup}
+                        />
+                        <lightning-icon
+                            icon-name="utility:search"
+                            size="x-small"
+                            class={searchIconClass}
+                        ></lightning-icon>
+                        <button
+                            type="button"
+                            onclick={handleSelectionClearClick}
+                            class={selectionClearButtonClass}
+                        >
+                            <lightning-icon
+                                icon-name="utility:close"
+                                size="x-small"
+                                class="slds-button__icon"
+                            ></lightning-icon>
+                        </button>
+                    </div>
+                    <div id="listbox-id" class="slds-dropdown slds-dropdown_length-5 slds-dropdown_fluid" role="listbox"
+                        onmouseenter={handleDropdownMouseEnter}
+                        onmouseleave={handleDropdownMouseLeave}
+                    >
+                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                            <div if:true={fieldSelsLoading}>
+                                <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>
+                            </div>
+                            <template if:true={isDropdownShow} for:each={filterFieldSels} for:item="sel">
+                                <li key={sel} role="presentation" class="slds-listbox__item">
+                                    <div class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small"
+                                        role="option"
+                                        onclick={handleOptionClick}
+                                        data-value={sel.value}
+                                        data-label={sel.label}
+                                    >
+                                        <span class="slds-media__figure slds-listbox__option-icon"></span>
+                                        <span class="slds-media__body">
+                                            <span class="slds-truncate" title={sel.label}>{sel.label}</span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <template if:true={errorMessages}>
+                <div class="slds-m-around_xx-small">
+                    <template for:each={errorMessages} for:item="errMsg">
+                        <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </div>
+</template>

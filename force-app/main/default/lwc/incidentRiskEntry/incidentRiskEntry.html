@@ -1,0 +1,268 @@
+<template>
+    <lightning-card class="slds-is-relative">
+        <div class="slds-var-p-around_small">
+            <template if:true={isProcessing}>
+                <lightning-spinner variant="brand"></lightning-spinner>
+            </template>
+            <template if:true={errorMessages}>
+                <template for:each={errorMessages} for:item="errMsg">
+                    <div key={errMsg} class="slds-text-color_error">{errMsg}</div>
+                </template>
+            </template>
+            <lightning-tabset active-tab-value={activeTabValue}>
+                <lightning-tab label={labelInfo.incidentRiskEntry} value="incidentRiskEntry" onactive={handleTabActive}>
+                    <div class="slds-var-p-around_small">
+                        <div class="slds-text-title_bold">
+                            {incidentLabel}
+                        </div>
+                        <div class="slds-grid slds-gutters slds-var-p-left_medium">
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">{incidentNameLabel}</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{incident.Name}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_3-of-4">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">{incidentTitleLabel}</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{incident.ermt__Title__c}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-text-title_bold slds-var-m-top_x-small">
+                            {riskLabel}
+                        </div>
+                        <div class="slds-var-p-left_medium">
+                            <lightning-accordion allow-multiple-sections-open
+                                onsectiontoggle={handleRiskSearchCondSectionToggle}
+                                active-section-name={riskSearchCondActiveSections}
+                            >
+                                <lightning-accordion-section name="searchCond" label={labelInfo.searchCond}>
+                                    <div class="slds-border_top slds-border_bottom">
+                                        <c-record-search-condition
+                                            object-name={riskObjectName}
+                                            select-field-names={riskSearchFieldNames}
+                                            onsearch={handleRiskSearchAsync}
+                                            oncancel={handleRiskSearchCancel}
+                                        ></c-record-search-condition>
+                                    </div>
+                                </lightning-accordion-section>
+                            </lightning-accordion>
+                            <div class="slds-grid slds-grid_vertical-align-end slds-var-m-bottom_xx-small">
+                                <div class="slds-col">
+                                    <lightning-radio-group
+                                        type="button"
+                                        label=""
+                                        variant="label-hidden"
+                                        options={registerTypeOptions} value={registerType}
+                                        onchange={handleRegisterTypeChangeAsync}
+                                    ></lightning-radio-group>
+                                </div>
+                                <div class="slds-col_bump-left">
+                                    <div class="slds-grid slds-gutters_x-small">
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                {riskPageInfo.resultSize}{labelInfo.number}
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                {riskPageInfo.pageNumber}/{riskPageInfo.lastPageNumber}{labelInfo.page}
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isRiskFirstPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="risk-first-page"
+                                                    onclick={handleRiskPageMoveClick}
+                                                >{labelInfo.first}</a>
+                                                <span if:false={isRiskFirstPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.first}</span>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isRiskPreviousPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="risk-previous-page"
+                                                    onclick={handleRiskPageMoveClick}
+                                                >{labelInfo.previous}</a>
+                                                <span if:false={isRiskPreviousPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.previous}</span>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isRiskNextPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="risk-next-page"
+                                                    onclick={handleRiskPageMoveClick}
+                                                >{labelInfo.next}</a>
+                                                <span if:false={isRiskNextPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.next}</span>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isRiskLastPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="risk-last-page"
+                                                    onclick={handleRiskPageMoveClick}
+                                                >{labelInfo.last}</a>
+                                                <span if:false={isRiskLastPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.last}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <!-- sldsValidatorIgnoreNextLine -->
+                                <lightning-datatable
+                                    data-name="riskTable"
+                                    key-field="key"
+                                    show-row-number-column="true"
+                                    row-number-offset={riskPageInfo.rowNumberOffset}
+                                    columns={riskColumns}
+                                    data={riskDataRows}
+                                    default-sort-direction={riskDefaultSortDirection}
+                                    sorted-direction={riskSortDirection}
+                                    sorted-by={riskSortedBy}
+                                    onsort={handleRiskSort}
+                                    onrowselection={handleRiskRowSelection}
+                                ></lightning-datatable>
+                            </div>
+                        </div>
+                        <div class="slds-align_absolute-center slds-border_top slds-var-p-around_small">
+                            <lightning-button
+                                class="slds-var-m-right_x-small"
+                                label={labelInfo.entry}
+                                icon-name="utility:new"
+                                variant="brand"
+                                disabled={isEntryDisabled}
+                                onclick={handleEntryClick}
+                            ></lightning-button>
+                            <lightning-button
+                                class="slds-var-m-right_x-small"
+                                label={labelInfo.delete}
+                                icon-name="utility:clear"
+                                variant="brand"
+                                disabled={isDeleteDisabled}
+                                onclick={handleDeleteClick}
+                            ></lightning-button>
+                            <lightning-button
+                                label={labelInfo.close}
+                                icon-name="utility:close"
+                                onclick={handleCloseClick}
+                            ></lightning-button>
+                        </div>
+                    </div>
+                </lightning-tab>
+                <lightning-tab label={labelInfo.riskNewCreate} value="riskNewCreate" onactive={handleTabActive}>
+                    <div class="slds-var-p-around_small">
+                        <lightning-record-edit-form
+                            if:true={riskCreateLayout}
+                            object-api-name={riskObjectName}
+                            record-type-id={riskRecordTypeId}
+                            onsubmit={handleRiskNewSubmit}
+                            onsuccess={handleRiskNewSuccessAsync}
+                            onerror={handleRiskNewError}
+                        >
+                            <lightning-messages> </lightning-messages>
+                            <template for:each={riskCreateLayout} for:item="section">
+                                <div key={section} class="slds-section slds-is-open">
+                                    <h3 if:true={section.heading} class="slds-section__title slds-theme_shade">
+                                        <span class="slds-truncate slds-var-p-horizontal_small">{section.heading}</span>
+                                    </h3>
+                                    <div class="slds-section__content">
+                                        <template for:each={section.rows} for:item="row">
+                                            <div key={row} class="slds-grid">
+                                                <template for:each={row.items} for:item="item">
+                                                    <div key={item} class={section.columnClass}>
+                                                        <lightning-input-field
+                                                            if:true={item.name}
+                                                            class={item.class}
+                                                            field-name={item.name}
+                                                            value={item.value}
+                                                            required={item.required}
+                                                            disabled={item.disabled}
+                                                        ></lightning-input-field>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                            <div class="slds-align_absolute-center slds-border_top slds-var-p-around_small">
+                                <lightning-button
+                                    class="slds-var-m-right_x-small"
+                                    type="submit"
+                                    label={labelInfo.save}
+                                    icon-name="utility:new"
+                                    variant="brand"
+                                ></lightning-button>
+                                <lightning-button
+                                    label={labelInfo.close}
+                                    icon-name="utility:close"
+                                    onclick={handleCloseClick}
+                                ></lightning-button>
+                            </div>
+                        </lightning-record-edit-form>
+                    </div>
+                </lightning-tab>
+            </lightning-tabset>
+        </div>
+    </lightning-card>
+    <!-- 登録確認ダイアログ -->
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal" data-name="entry-confirm-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleEntryCancelClick}></lightning-button>
+                <h2 class="slds-modal__title slds-hyphenate">{labelInfo.entry}</h2>
+            </header>
+            <div class="slds-modal__content slds-var-p-around_medium slds-text-align_center">
+                <p>{labelInfo.incidentRiskEntryConfirm}</p>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label={labelInfo.cancel} class="slds-var-m-horizontal_xx-small"
+                    onclick={handleEntryCancelClick}></lightning-button>
+                <lightning-button label={labelInfo.ok} variant="brand" class="slds-var-m-horizontal_xx-small"
+                    onclick={handleEntryOkClickAsync}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <!-- 削除確認ダイアログ -->
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal" data-name="delete-confirm-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleDeleteCancelClick}></lightning-button>
+                <h2 class="slds-modal__title slds-hyphenate">{labelInfo.delete}</h2>
+            </header>
+            <div class="slds-modal__content slds-var-p-around_medium slds-text-align_center">
+                <p>{labelInfo.incidentRiskDeleteConfirm}</p>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label={labelInfo.cancel} class="slds-var-m-horizontal_xx-small"
+                    onclick={handleDeleteCancelClick}></lightning-button>
+                <lightning-button label={labelInfo.ok} variant="brand" class="slds-var-m-horizontal_xx-small"
+                    onclick={handleDeleteOkClickAsync}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <!-- ダイアログのバックドロップ -->
+    <div class="slds-backdrop" data-name="dialog-backdrop"></div>
+</template>

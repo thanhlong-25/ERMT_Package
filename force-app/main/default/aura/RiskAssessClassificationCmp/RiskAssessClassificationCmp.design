@@ -1,0 +1,3 @@
+<design:component>
+	<design:attribute name="recordTypeName" description="Developer Name of record type want to show"/>
+</design:component>

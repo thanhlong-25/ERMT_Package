@@ -1,0 +1,21 @@
+<aura:component controller="ERMT_RiskCC" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="record" type="Object" required="true" default=""/>
+    <aura:attribute name="listBadges" type="List" default="[]"/>
+
+    <aura:if isTrue="{!!empty(v.listBadges)}">
+        <div class="slds-m-bottom_small ">
+            <div class="slds-m-bottom_x-small ">
+                <lightning:icon iconName="standard:decision" alternativeText="Classified" size="small"/>
+                <span class="slds-m-left_xx-small slds-text-title"><b>{! !empty(v.record.ermt__Label__c) ? v.record.ermt__Label__c : v.record.Name }</b></span>
+            </div>
+            <div class="flex-container">
+                <aura:iteration items="{!v.listBadges}" var="badge">
+                    <div class="slds-m-around_xx-small">
+                        <lightning:badge label="{!badge}"/>
+                    </div>
+                </aura:iteration>
+            </div>
+        </div>
+    </aura:if>
+</aura:component>

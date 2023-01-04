@@ -1,0 +1,16 @@
+<aura:component controller="ERMT_RiskCC" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="record" type="Object" required="true" default=""/>
+    <aura:attribute name="riskId" type="String" required="true" default=""/>
+    <aura:attribute name="options" type="List" default="[]"/>
+	<aura:attribute name="values" type="List" default="[]"/>
+	<div class="slds-box slds-m-bottom_x-small slds-theme_default">
+        <lightning:dualListbox name="classification"  
+            label= "{! !empty(v.record.ermt__Label__c) ? v.record.ermt__Label__c : v.record.Name }" 
+            options="{!v.options}" 
+            value="{!v.values}"
+            onchange="{! c.handleChange }"
+            size="5"
+        />
+    </div>
+</aura:component>

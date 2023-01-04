@@ -1,0 +1,8 @@
+.THIS .disabled{
+    pointer-events:none; 
+    opacity:0.4;        
+}
+
+.THIS .slds-dropdown-trigger_click.slds-is-open .slds-dropdown{
+	display: none;
+}

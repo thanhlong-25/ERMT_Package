@@ -1,0 +1,17 @@
+.THIS .slds-text-heading_medium {
+    line-height: 2.25 !important;
+}
+
+.THIS .category-header {
+	display: flex;
+	border-bottom: 1px solid rgb(221, 219, 218);
+}
+.THIS .category-title {
+	width: 90%;
+}
+.THIS .category-savebutton {
+	width: 10%;
+	display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}

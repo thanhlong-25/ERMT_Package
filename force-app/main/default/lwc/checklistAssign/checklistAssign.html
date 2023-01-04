@@ -1,0 +1,317 @@
+<template>
+    <lightning-card title={label.title} icon-name="custom:custom18">
+        <div class="slds-card__body_inner">
+            <template if:true={errorMsgs}>
+                <div class="slds-m-around_xx-small">
+                    <template for:each={errorMsgs} for:item="errMsg">
+                        <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+                    </template>
+                </div>
+            </template>
+            <div class="slds-box slds-box_small slds-m-around_xx-small">
+                <div class="sectionTitle">{label.assignSoruce}</div>
+                <div class="slds-grid slds-gutters_x-small slds-wrap">
+                    <template if:true={assignSrcObjNameVisible}>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_7-of-12 slds-m-bottom_xx-small">
+                            <lightning-combobox label={label.assignSoruceObject} value={assignSrcObjName} placeholder=""
+                                options={assignSrcObjNameSels} onchange={handleAssignSrcObjChange} required>
+                            </lightning-combobox>
+                        </div>
+                    </template>
+                    <template if:false={isAssignSrcNone}>
+                        <template if:true={isAssignSrcChecklist}>
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_7-of-12 slds-m-bottom_xx-small">
+                                <template if:true={isAnswerSheetEdit}>
+                                    <lightning-record-edit-form object-api-name={answerSheetObject}>
+                                        <lightning-messages></lightning-messages>
+                                        <lightning-input-field
+                                                field-name="ermt__Checklist__c" value={checklistId} required
+                                                onchange={handleAssignSrcChecklistChange}></lightning-input-field>
+                                    </lightning-record-edit-form>
+                                </template>
+                                <template if:false={isAnswerSheetEdit}>
+                                    <div class="fieldLabel">
+                                        <span>{label.checklist}</span>
+                                    </div>
+                                    <template if:true={assignSrcInfo}>
+                                        <lightning-formatted-text value={assignSrcInfo.recordName}></lightning-formatted-text>
+                                    </template>
+                                </template>
+                            </div>
+                        </template>
+                        <template if:true={isAssignSrcUser}>
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_7-of-12 slds-m-bottom_xx-small">
+                                <template if:true={isAccountUserCreate}>
+                                    <lightning-record-edit-form object-api-name={accountUserObject}>
+                                        <lightning-messages></lightning-messages>
+                                        <lightning-input-field
+                                                field-name="ermt__Account__c" value={accountId} required
+                                                onchange={handleAssignSrcAccountChange}></lightning-input-field>
+                                    </lightning-record-edit-form>
+                                </template>
+                                <template if:false={isAccountUserCreate}>
+                                    <div class="fieldLabel">
+                                        <span>{label.account}</span>
+                                    </div>
+                                    <template if:true={assignSrcInfo}>
+                                        <lightning-formatted-text value={assignSrcInfo.recordName}></lightning-formatted-text>
+                                    </template>
+                                </template>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
+                                <div class="fieldLabel">
+                                    <span class="slds-required">*</span>
+                                    <span>{label.user}</span>
+                                </div>
+                                <div class="slds-grid slds-grid_vertical-align-end slds-m-bottom_xx-small">
+                                    <div class="slds-col slds-size_8-of-12"></div>
+                                    <div class="slds-col slds-size_4-of-12">
+                                        <lightning-input type="search" name="assignSrcListOtherSearchCond"
+                                            label="" variant="label-hidden"
+                                            value={assignSrcList.otherSearchCond}
+                                            onchange={handleAssignSrcListOtherSearchCondChange}></lightning-input>
+                                    </div>
+                                </div>
+                                <template if:true={assignSrcInfo}>
+                                    <div class="slds-scrollable_y slds-m-bottom_xx-small assignListWrap">
+                                        <lightning-datatable
+                                            columns={assignSrcInfo.fields}
+                                            data={assignSrcInfo.records}
+                                            key-field="id"
+                                            max-row-selection="1"
+                                            selected-rows={assignSrcList.selectedRows}
+                                            onrowselection={handleAssignSrcListRowSelect}
+                                            show-row-number-column
+                                            row-number-offset={assignSrcInfo.pageInfo.rowNumberOffset}
+                                            sorted-by={assignSrcList.sortFieldName}
+                                            sorted-direction={assignSrcList.sortDirection}
+                                            default-sort-direction={assignSrcList.defaultSortDirection}
+                                            onsort={handleAssignSrcListSort}
+                                            class="assignSrcList"
+                                            >
+                                        </lightning-datatable>
+                                    </div>
+                                    <template if:true={assignSrcListPaginationVisible}>
+                                        <lightning-layout>
+                                            <lightning-layout-item>
+                                                <lightning-button-group>
+                                                    <lightning-button label={label.list_first} icon-name="utility:chevronleft"
+                                                        disabled={assignSrcListNotHasFirst} onclick={handleAssignSrcListFirstPageClick}></lightning-button>
+                                                    <lightning-button label={label.list_previous} icon-name="utility:chevronleft"
+                                                        disabled={assignSrcListNotHasPrevious} onclick={handleAssignSrcListPreviousPageClick}></lightning-button>
+                                                </lightning-button-group>
+                                            </lightning-layout-item>
+                                            <lightning-layout-item flexibility="grow" class="pageNumberItem">
+                                                <div class="pageNumberWrap">
+                                                    <lightning-input type="number" label="" variant="label-hidden"
+                                                        name="pageNumber" value={assignSrcInfo.pageInfo.pageNumber}
+                                                        min="1" max={assignSrcInfo.pageInfo.lastPageNumber}
+                                                        onchange={handleAssignSrcListPageNumberChange}></lightning-input>
+                                                </div>
+                                                ／ {assignSrcInfo.pageInfo.lastPageNumber} {label.list_page}
+                                            </lightning-layout-item>
+                                            <lightning-layout-item>
+                                                <lightning-button-group>
+                                                    <lightning-button label={label.list_next} icon-name="utility:chevronright"
+                                                        disabled={assignSrcListNotHasNext} icon-position="right" onclick={handleAssignSrcListNextPageClick}></lightning-button>
+                                                    <lightning-button label={label.list_last} icon-name="utility:chevronright"
+                                                        disabled={assignSrcListNotHasLast} icon-position="right" onclick={handleAssignSrcListLastPageClick}></lightning-button>
+                                                </lightning-button-group>
+                                            </lightning-layout-item>
+                                        </lightning-layout>
+                                    </template>
+                                </template>
+                            </div>
+                        </template>
+                    </template>
+                </div>
+            </div>
+            <div class="slds-box slds-box_small slds-m-around_xx-small">
+                <div class="sectionTitle">{label.assignDestination}</div>
+                <div class="slds-grid slds-gutters_x-small slds-wrap">
+                    <template if:true={assignDstObjNameVisible}>
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_7-of-12 slds-m-bottom_xx-small">
+                            <lightning-combobox label={label.assignDestinationObject} value={assignDstObjName} placeholder=""
+                                options={assignDstObjNameSels} onchange={handleAssignDstObjChange} required>
+                            </lightning-combobox>
+                        </div>
+                    </template>
+                    <template if:false={isAssignDstNone}>
+                        <template if:true={isAssignDstUser}>
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_7-of-12 slds-m-bottom_xx-small">
+                                <template if:true={isAccountUserCreate}>
+                                    <lightning-record-edit-form object-api-name={accountUserObject}>
+                                        <lightning-messages></lightning-messages>
+                                        <lightning-input-field
+                                                field-name="ermt__Account__c" value={accountId} required
+                                                onchange={handleAssignDstAccountChange}></lightning-input-field>
+                                    </lightning-record-edit-form>
+                                </template>
+                                <template if:false={isAccountUserCreate}>
+                                    <div class="fieldLabel">
+                                        <span>{label.account}</span>
+                                    </div>
+                                    <template if:true={assignDstInfo}>
+                                        <lightning-formatted-text value={assignDstInfo.recordName}></lightning-formatted-text>
+                                    </template>
+                                </template>
+                            </div>
+                        </template>
+                        <div class="slds-col slds-size_1-of-1 slds-m-bottom_xx-small">
+                            <template if:true={isAssignDstChecklist}>
+                                <div class="fieldLabel">
+                                    <span class="slds-required">*</span>
+                                    <span>{label.checklist}</span>
+                                </div>
+                            </template>
+                            <template if:true={isAssignDstUser}>
+                                <div class="fieldLabel">
+                                    <span class="slds-required">*</span>
+                                    <span>{label.user}</span>
+                                </div>
+                            </template>
+                            <div class="slds-grid slds-grid_vertical-align-end slds-m-bottom_xx-small">
+                                <div class="slds-col slds-size_8-of-12">
+                                    <lightning-radio-group type="button" name="assigned"
+                                        label="" variant="label-hidden"
+                                        options={assignedSels} value={assignDstList.assigned}
+                                        onchange={handleAssignDstListAssignedChange}></lightning-radio-group>
+                                </div>
+                                <div class="slds-col slds-size_4-of-12">
+                                    <lightning-input type="search" name="assignDstListOtherSearchCond"
+                                        label="" variant="label-hidden"
+                                        value={assignDstList.otherSearchCond}
+                                        onchange={handleAssignDstListOtherSearchCondChange}></lightning-input>
+                                </div>
+                            </div>
+                            <template if:true={assignDstInfo}>
+                                <div class="slds-scrollable_y slds-m-bottom_xx-small assignListWrap">
+                                    <lightning-datatable
+                                        columns={assignDstInfo.fields}
+                                        data={assignDstInfo.records}
+                                        key-field="id"
+                                        show-row-number-column
+                                        row-number-offset={assignDstInfo.pageInfo.rowNumberOffset}
+                                        sorted-by={assignDstList.sortFieldName}
+                                        sorted-direction={assignDstList.sortDirection}
+                                        default-sort-direction={assignDstList.defaultSortDirection}
+                                        onsort={handleAssignDstListSort}
+                                        class="assignDstList"
+                                        >
+                                    </lightning-datatable>
+                                </div>
+                                <template if:true={assignDstListPaginationVisible}>
+                                    <lightning-layout>
+                                        <lightning-layout-item>
+                                            <lightning-button-group>
+                                                <lightning-button label={label.list_first} icon-name="utility:chevronleft"
+                                                    disabled={assignDstListNotHasFirst} onclick={handleAssignDstListFirstPageClick}></lightning-button>
+                                                <lightning-button label={label.list_previous} icon-name="utility:chevronleft"
+                                                    disabled={assignDstListNotHasPrevious} onclick={handleAssignDstListPreviousPageClick}></lightning-button>
+                                            </lightning-button-group>
+                                        </lightning-layout-item>
+                                        <lightning-layout-item flexibility="grow" class="pageNumberItem">
+                                            <div class="pageNumberWrap">
+                                                <lightning-input type="number" label="" variant="label-hidden"
+                                                    name="pageNumber" value={assignDstInfo.pageInfo.pageNumber}
+                                                    min="1" max={assignDstInfo.pageInfo.lastPageNumber}
+                                                    onchange={handleAssignDstListPageNumberChange}></lightning-input>
+                                            </div>
+                                            ／ {assignDstInfo.pageInfo.lastPageNumber} {label.list_page}
+                                        </lightning-layout-item>
+                                        <lightning-layout-item>
+                                            <lightning-button-group>
+                                                <lightning-button label={label.list_next} icon-name="utility:chevronright"
+                                                    disabled={assignDstListNotHasNext} icon-position="right" onclick={handleAssignDstListNextPageClick}></lightning-button>
+                                                <lightning-button label={label.list_last} icon-name="utility:chevronright"
+                                                    disabled={assignDstListNotHasLast} icon-position="right" onclick={handleAssignDstListLastPageClick}></lightning-button>
+                                            </lightning-button-group>
+                                        </lightning-layout-item>
+                                    </lightning-layout>
+                                </template>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+        <p slot="footer">
+            <lightning-button-group class="slds-m-bottom_medium">
+                <template if:true={isAnswerSheetEdit}>
+                    <template if:false={isAssignSrcNone}>
+                        <template if:false={isAssignDstNone}>
+                            <lightning-button label={label.assign} icon-name="utility:new"
+                                onclick={handleAssignClick}></lightning-button>
+                            <lightning-button label={label.unassign} icon-name="utility:clear"
+                                onclick={handleUnassignClick}></lightning-button>
+                        </template>
+                    </template>
+                </template>
+            </lightning-button-group>
+        </p>
+    </lightning-card>
+    <template if:true={inputErrorDialogVisible}>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button icon-name="utility:close" variant="base"
+                        class="slds-modal__close slds-button_icon-inverse"
+                        onclick={handleInputErrorOkClick}></lightning-button>
+                    <h2 class="slds-modal__title slds-hyphenate">{label.input_error}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center">
+                    <p>{inputErrorContent}</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label={label.input_error_ok} variant="brand" class="slds-m-horizontal_xx-small"
+                        onclick={handleInputErrorOkClick}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    <template if:true={assignDialogVisible}>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button icon-name="utility:close" variant="base"
+                        class="slds-modal__close slds-button_icon-inverse"
+                        onclick={handleAssignCancelClick}></lightning-button>
+                    <h2 class="slds-modal__title slds-hyphenate">{label.assign}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center">
+                    <p>{label.assign_confirm}</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label={label.assign_cancel} class="slds-m-horizontal_xx-small"
+                        onclick={handleAssignCancelClick}></lightning-button>
+                    <lightning-button label={label.assign_ok} variant="brand" class="slds-m-horizontal_xx-small"
+                        onclick={handleAssignOkClick}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+    <template if:true={unassignDialogVisible}>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button icon-name="utility:close" variant="base"
+                        class="slds-modal__close slds-button_icon-inverse"
+                        onclick={handleUnassignCancelClick}></lightning-button>
+                    <h2 class="slds-modal__title slds-hyphenate">{label.unassign}</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium slds-text-align_center">
+                    <p>{label.unassign_confirm}</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button label={label.unassign_cancel} class="slds-m-horizontal_xx-small"
+                        onclick={handleUnassignCancelClick}></lightning-button>
+                    <lightning-button label={label.unassign_ok} variant="brand" class="slds-m-horizontal_xx-small"
+                        onclick={handleUnassignOkClick}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+</template>

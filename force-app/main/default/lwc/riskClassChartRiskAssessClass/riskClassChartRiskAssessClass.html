@@ -1,0 +1,421 @@
+<template>
+    <lightning-card icon-name="custom:custom75" class="slds-is-relative">
+        <div slot="title">
+            <span class="title">{labelInfo.title}</span>
+        </div>
+        <div slot="actions">
+            <lightning-button-group>
+                <lightning-button-icon-stateful
+                    icon-name="utility:search"
+                    alternative-text={labelInfo.searchCond}
+                    title={labelInfo.searchCond}
+                    selected={isSearchCondVisible}
+                    onclick={handleSearchConditionClick}>
+                </lightning-button-icon-stateful>
+                <!-- sldsValidatorIgnoreNextLine -->
+                <lightning-button-icon
+                    icon-name="utility:table_settings"
+                    alternative-text={labelInfo.chartBackColorSetting}
+                    title={labelInfo.chartBackColorSetting}
+                    onclick={handleChartBackColorSettingClick}
+                    disabled={isChartBackColorSettingDisabled}>
+                </lightning-button-icon>
+            </lightning-button-group>
+        </div>
+        <div class="slds-var-p-around_small">
+            <!-- 処理中スピナー -->
+            <template if:true={isProcessing}>
+                <lightning-spinner variant="brand"></lightning-spinner>
+            </template>
+            <!-- エラーメッセージ -->
+            <template if:true={errorMessages}>
+                <template for:each={errorMessages} for:item="errMsg">
+                    <div key={errMsg} class="slds-text-color_error">{errMsg}</div>
+                </template>
+            </template>
+            <!-- 検索条件 -->
+            <div class="slds-var-m-horizontal_small slds-var-m-top_xx-small slds-hide"
+                data-name="searchConditionPanelWrap">
+                <div class="slds-panel slds-size_full slds-panel_docked slds-panel_docked-left"
+                    data-name="searchConditionPanel"
+                    aria-hidden="false">
+                    <div class="slds-panel__header">
+                        <div class="slds-panel__header-title slds-text-heading_small slds-truncate"
+                            title={labelInfo.searchCond}>
+                            {labelInfo.searchCond}
+                        </div>
+                        <!-- sldsValidatorIgnoreNextLine -->
+                        <button class="slds-button slds-button_icon slds-button_icon-small slds-panel__close"
+                            onclick={handleSearchConditionCancelClick}>
+                            <svg class="slds-button__icon" aria-hidden="true">
+                                <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#close"></use>
+                            </svg>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                    </div>
+                    <div class="slds-panel__body">
+                        <div class="slds-section slds-is-open">
+                            <div class="slds-section__title slds-theme_shade">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col">
+                                        <h3>
+                                            <span class="slds-truncate slds-var-p-horizontal_small"
+                                                title={riskObjectLabel}>
+                                                {riskObjectLabel}
+                                            </span>
+                                        </h3>
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning-input type="toggle"
+                                            label=""
+                                            checked={searchCondTemp.risk.isEnabled}
+                                            message-toggle-active=""
+                                            message-toggle-inactive=""
+                                            variant="label-hidden"
+                                            onchange={handleRiskSearchCondEnableChange}>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class={riskSearchCondClass}>
+                                <div class="slds-var-m-horizontal_medium">
+                                    <c-record-search-condition
+                                        data-name="riskSerachCondition"
+                                        object-name={riskObjectName}
+                                        value={searchCondTemp.risk}
+                                        select-field-names={riskSearchFieldNames}
+                                        is-search-hide="true"
+                                        onedit={handleRiskSearchCondEdit}>
+                                    </c-record-search-condition>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-section slds-is-open">
+                            <div class="slds-section__title slds-theme_shade">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col">
+                                        <h3>
+                                            <span class="slds-truncate slds-var-p-horizontal_small"
+                                                title={riskAssessmentObjectLabel}>
+                                                {riskAssessmentObjectLabel}
+                                            </span>
+                                        </h3>
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning-input type="toggle"
+                                            label=""
+                                            checked={searchCondTemp.riskAssessment.isEnabled}
+                                            message-toggle-active=""
+                                            message-toggle-inactive=""
+                                            variant="label-hidden"
+                                            onchange={handleRiskAssessSearchCondEnableChange}>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class={riskAssessmentSearchCondClass}>
+                                <div class="slds-var-m-horizontal_medium">
+                                    <c-record-search-condition
+                                        data-name="riskAssessmentSerachCondition"
+                                        object-name={riskAssessmentObjectName}
+                                        value={searchCondTemp.riskAssessment}
+                                        select-field-names={riskAssessSearchFieldNames}
+                                        is-search-hide="true"
+                                        onedit={handleRiskAssessSearchCondEdit}
+                                    ></c-record-search-condition>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-text-align_center">
+                            <lightning-button
+                                label={labelInfo.search}
+                                aria-label={labelInfo.search}
+                                variant="brand"
+                                class="slds-var-m-horizontal_xx-small"
+                                onclick={handleSearchConditionSearchClickAsync}>
+                                {labelInfo.search}
+                            </lightning-button>
+                            <div class="slds-text-color_error slds-var-m-top_xxx-small">
+                                {searchCondErrorMessage}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div if:true={isProjectVisible}
+                class="slds-grid slds-wrap slds-gutters_x-small slds-var-m-horizontal_small slds-var-m-top_xx-small">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <c-record-lookup
+                        label={projectObjectLabel}
+                        object-name={projectObjectName}
+                        value={projectId}
+                        onselectionchange={handleProjectChangeAsync}
+                    ></c-record-lookup>
+                </div>
+            </div>
+            <div class="slds-grid slds-wrap slds-gutters_x-small slds-var-m-horizontal_small slds-var-m-top_xx-small">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <c-risk-assessment-classi-combobox
+                        is-label-show
+                        project-id={projectId}
+                        classi-record-type-name={labelInfo.classRecordType_analyseTiming}
+                        value={analyseTimingClassId}
+                        oninputchange={handleAnalyseTimingChangeAsync}
+                    ></c-risk-assessment-classi-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <lightning-combobox
+                        label={labelInfo.verticalAxis}
+                        value={vaClassRecordTypeName}
+                        options={axisSels}
+                        onchange={handleVerticalAxisChangeAsync}
+                        placeholder=""
+                    ></lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <lightning-combobox
+                        label={labelInfo.horizontalAxis}
+                        value={haClassRecordTypeName}
+                        options={axisSels}
+                        onchange={handleHorizontalAxisChangeAsync}
+                        placeholder=""
+                    ></lightning-combobox>
+                </div>
+            </div>
+            <div class="slds-grid slds-wrap slds-gutters_x-small slds-var-m-horizontal_small slds-var-m-top_xx-small">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <lightning-radio-group type="button"
+                        label={labelInfo.classType}
+                        value={classType}
+                        options={classTypeSels}
+                        onchange={handleClassTypeChangeAsync}>
+                    </lightning-radio-group>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <div class={riskClassVisibleClass}>
+                        <c-risk-class-project-combobox
+                            label={labelInfo.classType_riskClass}
+                            project-id={projectId}
+                            value={classIds}
+                            onselectionchange={handleRiskClassChange}
+                        ></c-risk-class-project-combobox>
+                    </div>
+                    <div class={accountVisibleClass}>
+                        <c-account-combobox
+                            label={labelInfo.classType_account}
+                            value={accountIds}
+                            onselectionchange={handleAccountChange}
+                        ></c-account-combobox>
+                    </div>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <div class="slds-form-element slds-var-m-top_x-small">
+                        <div class="slds-form-element__control">
+                            <div class="slds-checkbox">
+                                <input type="checkbox"
+                                    id="chartDataLabelVisible"
+                                    checked={isChartDataLabelVisible}
+                                    onchange={handleChartDataLabelVisibleChange} />
+                                <label class="slds-checkbox__label" for="chartDataLabelVisible">
+                                    <span class="slds-checkbox_faux"></span>
+                                    <span class="slds-form-element__label">{labelInfo.chartDataLabelVisible}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- チャート -->
+            <div class="slds-grid slds-grid_vertical">
+                <div class="slds-col">
+                    <div lwc:dom="manual"
+                        data-name="chartContainer"
+                        class="slds-scrollable"
+                        style={chartContainerStyle}>
+                    </div>
+                </div>
+                <div class="slds-col">
+                    <div lwc:dom="manual"
+                        data-name="chartLegendContainer"
+                        class="slds-scrollable"
+                        style={chartLegendContainerStyle}>
+                    </div> 
+                </div>
+            </div>
+        </div>
+    </lightning-card>
+    <!-- チャート背景色設定ダイアログ -->
+    <section role="dialog" tabindex="-1" aria-modal="true"
+        class="slds-modal slds-modal_medium slds-hide"
+        data-name="chartBackColorSettingDialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    aria-label={labelInfo.cancel}
+                    onclick={handleChartBackColorSettingCancelClick}></lightning-button>
+                <div class="slds-text-title">{labelInfo.title}</div>
+                <h2 class="slds-modal__title slds-hyphenate">{labelInfo.chartBackColorSetting}</h2>
+            </header>
+            <div class="slds-modal__content slds-var-p-around_medium" style="padding-bottom: 2rem;">
+                <div class="slds-expression">
+                    <ul>
+                        <template for:each={chartBackColorInfosTemp} for:item="info">
+                            <li key={info} class="slds-expression__row">
+                                <!-- sldsValidatorIgnoreNextLine -->
+                                <fieldset>
+                                    <!-- sldsValidatorIgnoreNextLine -->
+                                    <legend class="slds-expression__legend">
+                                        <span>{info.no}</span>
+                                        <span class="slds-assistive-text">{info.no}</span>
+                                    </legend>
+                                    <div class="slds-grid slds-wrap slds-gutters_xx-small">
+                                        <div class="slds-col slds-grow-none">
+                                            <lightning-combobox
+                                                data-no={info.no}
+                                                label={labelInfo.classGroup1}
+                                                value={info.classGroupId1}
+                                                options={axisSels}
+                                                onchange={handleChartBackColorClassGroup1Change}
+                                                placeholder=""
+                                            ></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-grid slds-grid_vertical-align-end">
+                                                <div style="width: 4.5rem;">
+                                                    <lightning-input
+                                                        data-no={info.no}
+                                                        type="number"
+                                                        label={labelInfo.score1}
+                                                        value={info.minScore1}
+                                                        placeholder=""
+                                                        autocomplete="off"
+                                                        onchange={handleChartBackColorMinScore1Change}
+                                                    ></lightning-input>
+                                                </div>
+                                                <div class="slds-var-p-around_xx-small nowrap">
+                                                    {labelInfo.greaterThanEqual}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <lightning-combobox
+                                                data-no={info.no}
+                                                label={labelInfo.classGroup2}
+                                                value={info.classGroupId2}
+                                                options={axisSels}
+                                                onchange={handleChartBackColorClassGroup2Change}
+                                                placeholder=""
+                                            ></lightning-combobox>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-grid slds-grid_vertical-align-end">
+                                                <div style="width: 4.5rem;">
+                                                    <lightning-input
+                                                        data-no={info.no}
+                                                        type="number"
+                                                        label={labelInfo.score2}
+                                                        value={info.minScore2}
+                                                        placeholder=""
+                                                        autocomplete="off"
+                                                        onchange={handleChartBackColorMinScore2Change}
+                                                    ></lightning-input>
+                                                </div>
+                                                <div class="slds-var-p-around_xx-small nowrap">
+                                                    {labelInfo.greaterThanEqual}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <lightning-input
+                                                data-no={info.no}
+                                                type="color"
+                                                label={labelInfo.backgroundColor}
+                                                value={info.backColor}
+                                                onchange={handleChartBackColorBackColorChange}
+                                            ></lightning-input>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <lightning-slider
+                                                data-no={info.no}
+                                                label={labelInfo.transparency}
+                                                value={info.transparency}
+                                                onchange={handleChartBackColorTransparencyChange}
+                                            ></lightning-slider>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-form-element">
+                                                <span class="slds-form-element__label" style="visibility: hidden;">
+                                                    {labelInfo.rowDelete}
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <!-- sldsValidatorIgnoreNextLine -->
+                                                    <button
+                                                        data-no={info.no}
+                                                        class="slds-button slds-button_icon slds-button_icon-border-filled"
+                                                        title={labelInfo.rowDelete}
+                                                        onclick={handleChartBackColorInfoDeleteClick}
+                                                    >
+                                                        <lightning-icon
+                                                            class="slds-button__icon"
+                                                            icon-name="utility:delete"
+                                                            size="x-small"
+                                                            alternative-text={labelInfo.rowDelete}
+                                                        ></lightning-icon>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </li>
+                        </template>
+                    </ul>
+                    <div class="slds-expression__buttons buttons">
+                        <!-- sldsValidatorIgnoreNextLine -->
+                        <button
+                            class="slds-button slds-button_neutral"
+                            title={labelInfo.rowAdd}
+                            onclick={handleChartBackColorInfoAddClick}
+                        >
+                            <lightning-icon
+                                class="slds-button__icon slds-button__icon_left"
+                                icon-name="utility:add"
+                                size="x-small"
+                                alternative-text={labelInfo.rowAdd}
+                            ></lightning-icon>
+                            {labelInfo.rowAdd}
+                        </button>
+                        <!-- sldsValidatorIgnoreNextLine -->
+                        <button
+                            class="slds-button slds-button_neutral"
+                            title={labelInfo.allRowDelete}
+                            onclick={handleChartBackColorInfoAllDeleteClick}>
+                            <lightning-icon
+                                class="slds-button__icon slds-button__icon_left"
+                                icon-name="utility:delete"
+                                alternative-text={labelInfo.allRowDelete}
+                                size="x-small"
+                            ></lightning-icon>
+                            {labelInfo.allRowDelete}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button
+                    class="slds-var-m-horizontal_xx-small"
+                    label={labelInfo.cancel}
+                    aria-label={labelInfo.cancel}
+                    onclick={handleChartBackColorSettingCancelClick}></lightning-button>
+                <lightning-button
+                    variant="brand"
+                    class="slds-var-m-horizontal_xx-small"
+                    label={labelInfo.ok}
+                    aria-label={labelInfo.ok}
+                    onclick={handleChartBackColorSettingOkClick}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop" data-name="dialogBackdrop"></div>
+</template>

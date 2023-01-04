@@ -1,0 +1,610 @@
+<apex:page sidebar="false" showHeader="false" standardController="Project__c" extensions="ERMT_ProjectCX" docType="html-5.0">
+  <html ng-app="SLDSApp">
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <apex:slds />
+       <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script> 
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js"></script>
+      <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.0.4/jscolor.min.js"></script>
+      <apex:slds />
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+      <style>
+        .wrapper-page {
+          width: 890px;
+          margin: 50px auto;
+        }
+        .axis-y {
+          display: inline-block;
+          vertical-align: top;
+          margin-right: 20px;
+          position: relative;
+        }
+        .axis-y .label-axis-y {
+          position: absolute;
+          top: -25px;
+          right:-123px;
+          width: 200px;
+          text-align: center;
+        }
+        .axis-y li{
+          display: block;
+          padding: 0;
+          margin: 0;
+          height: 100px;
+          line-height: 100px;
+          text-align: right;
+        }
+        .axis-y li .num {
+          float: right;
+          margin-left: 10px;
+        }
+        .axis-x {
+          width: 450px;
+          position: relative;
+        }
+        .axis-x .label-axis-x {
+          position: absolute;
+          top: 0;
+          right: -65px;
+        }
+        .axis-x ul{
+          display: flex;
+          justify-content: space-between;
+        }
+        .axis-x ul li{
+          width: 150px;
+          text-align: center;
+          margin:0;
+          padding:0;
+        }
+        .axis-x li .num {
+          display: block;
+          margin: 15px 0 5px;
+        }
+        .grid{
+          display: inline-table;
+          width: 451px;
+          height: 301px;
+          background-color: #F3F2F2;
+          border-left: solid 1px #F3F2F2;
+          border-top: solid 1px #F3F2F2;
+        }
+        .grid li {
+          width: 150px;
+          height: 100px;
+          padding: 0;
+          margin: 0;
+          /*border-top: solid 1px #ccc;
+          border-right: solid 1px #ccc;
+          display: inline-grid;
+          display: -webkit-inline-box;
+          display: -ms-inline-grid;*/
+          display: block;
+          float: left;
+          text-align: center;
+        }
+        .grid li .wrapper-column{
+          padding: 5px;
+          overflow: auto;
+          width: 149px;
+          height: 99px;
+        }
+        .grid li .wrapper-column .record-link {
+          border: solid 1px #ccc;
+          padding: 0 5px;
+          display: block;
+          color: #fff;
+          margin-bottom: 5px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .wrapper-color{
+          margin-top: -20px;
+          margin-bottom: 40px;
+          margin-left: 70px;
+        }
+        .button-new{
+          margin-bottom: 5px;
+        }
+        .button-color{
+            display: inline-block;
+            margin-left: -26.6px;
+        }
+        .button-color .button-default{
+          width: 58px ;
+          /*padding-bottom: 5px;*/
+          height: 22px;
+          
+        }
+        .button-color .button-default:not(:first-child){
+          margin-left: 3px;
+        }
+        .link-color{
+          margin-top: 10px;
+          margin-left: -39.6px;
+        }
+        .link-color .button-default{
+          width: 58px ;
+          /*padding-bottom: 5px;*/
+          height: 22px;
+        }
+        .link-color .button-default:not(:first-child){
+          margin-left: 3px;
+        }
+        #button-back{
+          margin-left: 28.5px;
+        }
+        .shadow-button{
+          box-shadow: 0px 0px 0px 2px rgb(0, 0, 155);
+          transform: translateY(0px);
+          width: 58px ;
+          margin-left: 3px;
+
+        }
+        .shadow-button-default{
+          box-shadow: 0px 0px 0px 2px rgb(0, 0, 155);
+          transform: translateY(0px);
+          width: 58px ;
+        }
+        .input-more{
+          /*margin-left: 3px;*/
+          width : 58px ;
+          height: 22px; 
+          border: 2px solid rgb(242, 239, 239);
+          border-top: 2px solid rgb(169,169,169);
+          border-left: 2px solid rgb(169,169,169);
+        }
+        .label-button{
+          margin-left: -10px;
+          margin-right: 20px;
+        }
+      </style>
+    </head>
+    <body ng-controller="MainController">
+      <div class="wrapper-page">
+        <div class="wrapper-color">
+          <div class="button-new">
+            <button id="button-back" onclick="goToProject('{!ermt__Project__c.Id}');"  class="slds-button slds-button_neutral slds-m-right_x-large">戻る</button>
+            <button onclick="addButton()" class="slds-button slds-button_neutral slds-m-right_x-large">新規追加</button>
+            <button  ng-click="save();" class="slds-button slds-button_brand slds-m-right_x-large">保存</button>
+          </div>
+          <div class="button-color">
+            <label class="label-button">セル色</label>
+            <input ng-repeat="btn in MetadataCellColor" type="text" class="button-default button{{$index}}"  ng-style="{'background-color':btn.ermt__Base_Color__c}" value="{{btn.Base_Value}}" name="{{$index}}"  onclick="chooseColor(event ,this.name  )" readonly="true"/>
+          </div>
+          <div class="link-color">
+            <label class="label-button">リスク色</label>
+            <input ng-repeat="btn in MetadataCellColor" type="text" class="button-default button{{$index}}"  ng-style="{'background-color':btn.ermt__Dark_Color__c}" value="{{btn.Dark_Value}}" name="{{$index}}"  onclick="chooseColor(event ,this.name  )" readonly="true"/>
+          </div>
+        </div>
+        <div class="axis-y">
+          <p class="label-axis-y">{{yAxis[0] ? yAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : ''}}</p>
+          <ul>
+            <li ng-repeat="y in yAxis | orderBy:'ermt__ViewNo__c':true">{{y.ermt__Label__c}}<span class="num">{{y.ermt__ViewNo__c}}</span></li>
+          </ul>
+        </div>
+        <!-- end left asix y--> 
+        <ul class="grid">
+          <!--
+            repeat li 25 times
+            <li>
+                <div class="wrapper-column">
+                    <a class="record-link" href="#">this is grid</a>
+                </div>
+            </li>
+            -->
+        </ul>
+        <div class="axis-x">
+          <p class="label-axis-x">{{xAxis[0] ? xAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : ''}}</p>
+          <ul>
+            <li ng-repeat="x in xAxis | orderBy:'ermt__ViewNo__c'"><span class="num">{{x.ermt__ViewNo__c}}</span>{{x.ermt__Label__c}}</li>
+          </ul>
+        </div>
+        <!-- end asix x  -->
+      </div>
+      <!--end wrapper-page-->
+    </body>
+    <script type="text/javascript">
+      $(document).ready(function(){
+          // for(var i=0; i<25; i++){
+          //     $('.grid').append('<li><div class="wrapper-column"><a class="record-link" href="#" title="">this is grid</a></div></li>');
+          // }
+      
+          // $( ".record-link" ).tooltip({
+          //   content: "<p>Awesome title!<br/>this is new line</p>"
+          // });
+      });
+
+      //Do Work
+      var count =0;
+      var pickColor = '';
+      var pickLinkColor = '';
+      var classificationObject;
+      var objectRequest= [];
+      var LineArray =[5,18,31,44,57,70,83,96];
+      var pickColorList = [];
+      var defaultColor = '#FFFFFF';
+      // Handle When Change Color Button JsColor
+      function toggleSelectColor(input, picker, flag){
+        for(var i = 0 ; i< pickColorList.length ; i++){
+          if(input.indexTag == pickColorList[i].index){
+            if(!flag){
+              pickColorList[i].pickColor = "#"+ picker;
+            }else{
+              pickColorList[i].pickLinkColor = "#"+ picker;
+            }
+          }
+        }
+        pickColor = pickColorList[input.indexTag].pickColor;
+        pickLinkColor = pickColorList[input.indexTag].pickLinkColor;
+        $("input").removeClass("shadow-button");
+        if(input.firstInput == false){
+          var picker = new jscolor(input);
+          var buttonsClassName = document.getElementsByClassName('gen-button'+input.indexTag+'');
+          for (var i = 0; i < buttonsClassName.length; i++) {
+            buttonsClassName[i].setAttribute("class", 'gen-button'+input.indexTag+' shadow-button input-more');
+          }
+          if(flag){
+            input.setAttribute('style' , 'margin-left: 3px; width: 58px ; height 22px; background-color: '+ pickLinkColor + '');
+          }else{
+            input.setAttribute('style' , 'margin-left: 3px; width: 58px ; height 22px; background-color: '+ pickColor + '');
+          }
+          
+        }else if(input.firstInput == true){
+          var picker = new jscolor(input);
+           var buttonsClassName = document.getElementsByClassName('gen-button'+input.indexTag+'');
+          for (var i = 0; i < buttonsClassName.length; i++) {
+            buttonsClassName[i].setAttribute("class", 'gen-button'+input.indexTag+' shadow-button input-more');
+          }
+          if(flag){
+           if(input.indexTag == LineArray[0] || input.indexTag == LineArray[1] || input.indexTag == LineArray[2] || input.indexTag == LineArray[3] || input.indexTag == LineArray[4] || input.indexTag == LineArray[5] || input.indexTag == LineArray[6] || input.indexTag == LineArray[7]){
+              input.setAttribute('style' , 'margin-left: 68.3px; width: 58px ; height 22px; background-color: '+ pickLinkColor + '');
+            }else{
+              input.setAttribute('style' , ' width: 58px ; height 22px; background-color: '+ pickLinkColor + '');
+            }
+                 
+          }else{
+            if(input.indexTag == LineArray[0] || input.indexTag == LineArray[1] || input.indexTag == LineArray[2] || input.indexTag == LineArray[3] || input.indexTag == LineArray[4] || input.indexTag == LineArray[5] || input.indexTag == LineArray[6] || input.indexTag == LineArray[7]){
+               input.setAttribute('style' , 'margin-left: 55.4px; width: 58px ; height 22px; background-color: '+ pickColor + '');
+             }else{
+              input.setAttribute('style' , ' width: 58px ; height 22px; background-color: '+ pickColor + '');
+             } 
+          }         
+        }
+        console.log('picker' , pickColor);
+      };
+      // Handle When Click Button JsColor
+      function toggleClickButton(input, picker, flag){
+        console.log('input index', input.indexTag);
+        $("input").removeClass("shadow-button");
+        $("input").removeClass("shadow-button-default");
+        //input class by index Class name
+        var buttonsClassName = document.getElementsByClassName('gen-button'+input.indexTag+'');
+        for (var i = 0; i < buttonsClassName.length; i++) {
+          buttonsClassName[i].setAttribute("class", 'gen-button'+input.indexTag+' shadow-button input-more');
+        }
+        input.setAttribute("class", 'shadow-button input-more gen-button'+input.indexTag+'');
+        pickColor = pickColorList[input.indexTag].pickColor;
+        pickLinkColor = pickColorList[input.indexTag].pickLinkColor;
+      };
+      $(".grid").click(function(event){
+        // console.log('pickcolor' , pickColor);
+        // console.log('pickLinkColor' , pickLinkColor);
+        if(pickColor == '' && event.target.nodeName != 'A'){
+          return;
+        }
+        if(pickLinkColor == '' && event.target.nodeName == 'A'){
+          return;
+        }
+        var buttonId;
+        var divChoose;
+        if(event.target.nodeName == 'A'){
+          buttonId = event.target.parentElement.id;
+          divChoose = event.target.parentElement;
+          // divChooseChild = event.target;
+        }else{
+
+          divChoose = event.target;
+          buttonId = event.target.id;
+        }
+        var objectChoose = {};
+        var number = 0;
+        objectChoose.ermt__ColorCode__c = pickColor;
+        var a = buttonId.split("-");
+        var x = parseInt(a[1]) -1;
+        var y = parseInt(a[2]) -1;
+        objectChoose.ermt__ColorLinkCode__c = pickLinkColor;
+        objectChoose.ermt__XCordinate__c = classificationObject.xAxis[x].Id;
+        objectChoose.ermt__Project__c = projectId;
+        objectChoose.ermt__YCordinate__c = classificationObject.yAxis[y].Id;
+        if(event.target.nodeName == 'A'){
+          objectChoose.x = event.target.parentElement.id;
+        }else{
+          objectChoose.x = event.target.id;
+        }
+
+        if(objectRequest.length == 0 ){
+          objectRequest.push(objectChoose);
+        }else{
+          for(var i = 0 ; i < objectRequest.length ; i++){
+             if(objectRequest[i].x ==  objectChoose.x && (objectRequest[i].ermt__ColorCode__c != objectChoose.ermt__ColorCode__c ||objectRequest[i].ermt__ColorLinkCode__c != objectChoose.ermt__ColorLinkCode__c )){
+                objectRequest.splice(i, 1);
+            }
+          }
+          if(number == 0){
+             objectRequest.push(objectChoose);
+          }
+        }
+        
+
+         divChoose.setAttribute("style", 'background-color: '+ pickColor + ' ');
+          if(event.target.nodeName == 'A'){
+            var parentNode = event.target.parentElement.children;
+          }else{
+             var parentNode = event.target.children;
+          }       
+          for(var s =0 ; s < parentNode.length; s++){
+            parentNode[s].setAttribute("style", 'background-color: '+ pickLinkColor + ' ; color : black ');
+          }
+             
+      })
+      // Add Button JsColor
+      var inputIndex = 0;
+      var countButtonInLine =5;
+      function goBack(){
+        window.history.back();
+      }
+
+      function goToProject(projectId){
+        var url = window.location.host;
+        console.log('url' , url);
+        window.location.href = "https://"+url+"/lightning/r/ermt__Project__c/"+projectId+"/view?0.source=alohaHeader";
+      }
+
+      function addButton(){
+          $("input").removeClass("shadow-button-default");
+          if(count >100){
+            return null;
+          }else{
+            for(var i = 0; i < 1; i++) {
+              var input = document.createElement('INPUT');
+              var inputChild = document.createElement('INPUT');
+              input.setAttribute("type", "viewButton");
+              $("input").removeClass("shadow-button");
+              if(count == 0){ 
+                             
+                input.setAttribute("class",'shadow-button input-more gen-button'+count+'');
+                input.firstInput =inputChild.firstInput = true;
+                input.indexTag = inputChild.indexTag = inputIndex;
+                inputChild.setAttribute("class",'input-more shadow-button gen-button'+count+' ');
+                 inputIndex ++;
+                
+              }else{
+                
+                input.setAttribute("class",'shadow-button input-more gen-button'+count+'');
+                
+                if(count == LineArray[0] || count == LineArray[1] || count == LineArray[2] || count == LineArray[3] || count == LineArray[4] || count == LineArray[5] || count == LineArray[6] || count == LineArray[7]){
+                  input.firstInput = inputChild.firstInput = true;
+                  input.setAttribute('style' , 'margin-left: 55.4px');
+                  inputChild.setAttribute('style' , 'margin-left: 68.3px');
+                }else{
+                  input.firstInput =inputChild.firstInput = false;
+                  input.setAttribute('style' , 'margin-left: 3px');
+                  inputChild.setAttribute('style' , 'margin-left: 3px');
+                }                               
+                input.indexTag = inputChild.indexTag = inputIndex;
+                
+                inputChild.setAttribute("class",'input-more shadow-button gen-button'+count+'');
+                inputIndex ++;
+              }
+              count ++;
+              var picker = new jscolor(input)
+              var pickerchild = new jscolor(inputChild);              
+                pickerchild.fromString('FFFFFF');
+                pickColor = defaultColor;
+                document.getElementsByClassName("button-color")[0].appendChild(input);
+                document.getElementsByClassName("link-color")[0].appendChild(inputChild);
+                pickColorList.push({"index" : input.indexTag , "pickColor" : defaultColor , "pickLinkColor" :defaultColor});
+                pickLinkColor = defaultColor;
+                input.onchange = function(){toggleSelectColor(input , picker.targetElement.value);};
+                input.onclick = function(){toggleClickButton(input, picker.targetElement.value)};
+                inputChild.onchange = function(){toggleSelectColor(inputChild , pickerchild.targetElement.value , true);};
+                inputChild.onclick = function(){toggleClickButton(inputChild, pickerchild.targetElement.value, true)};
+            }     
+          };
+      }
+      // Choose Button Default
+      function chooseColor(event, index){
+        pickColor = ButtonColor[index].ermt__Base_Color__c;
+        pickLinkColor = ButtonColor[index].ermt__Dark_Color__c;
+        $("input").removeClass("shadow-button");
+        $("input").removeClass("shadow-button-default");
+        var buttonsClassName = document.getElementsByClassName('button'+index+'');
+        for (var i = 0; i < buttonsClassName.length; i++) {
+          buttonsClassName[i].setAttribute("class", 'button'+index+' shadow-button-default  button-default');
+        }
+        event.currentTarget.setAttribute("class", 'button'+index+' shadow-button-default  button-default');
+      };
+      //END
+
+      var app = angular.module("SLDSApp",[]);
+      //Asyncnous fetch cellColor from server
+      app.factory('listCellColorFactory' , function($q , $rootScope){
+        var factory = {};
+        factory.getDataCellColor = function(projectId){
+            var deferred = $q.defer();
+            getCellColors(function (res){
+              $rootScope.$apply(function(){
+                deferred.resolve(res);
+              });
+            },projectId);
+            return deferred.promise;
+        };
+        return factory;
+      });
+      function getCellColors(callBack, projectId) {
+        Visualforce.remoting.Manager.invokeAction(
+          '{!$RemoteAction.ERMT_ProjectCX.getCellColor}',projectId,callBack, {'escape': false}
+          );
+      }
+
+      app.controller('MainController', function($scope ,$window, listCellColorFactory) {
+        $scope.xAxis = [];
+        $scope.yAxis = [];
+        $scope.riskData = [];
+        $scope.evaluationDefault = 'なし';
+        //Do work
+        //Save CellColor
+        $scope.save = function(){
+          console.log('$scope.objectRequestController' , $scope.objectRequestController)
+          Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getCellColor}','{!ermt__Project__c.Id}', function(result, event) {
+                $scope.CellColorList = result; 
+                $scope.$apply();
+                 for(var k =0 ; k< $scope.objectRequestController.length; k++){
+                  for(var h =0 ; h< $scope.CellColorList.length ;h++){
+                    if($scope.objectRequestController[k].ermt__XCordinate__c == $scope.CellColorList[h].ermt__XCordinate__c && $scope.objectRequestController[k].ermt__YCordinate__c == $scope.CellColorList[h].ermt__YCordinate__c){
+                      $scope.objectRequestController[k].Id = $scope.CellColorList[h].Id;
+                      $scope.CellColorList.splice(h,1);
+                      delete $scope.objectRequestController[k].x;
+                      $scope.CellColorList.push($scope.objectRequestController[k]);
+                      break;
+                    }
+                  }
+              }
+              console.log('Cellcolor request', $scope.CellColorList);
+              Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.addCellColor}',$scope.CellColorList,'{!ermt__Project__c.Id}', function(result, event) {
+                if(result = true){
+                  $window.alert("保存しました。");
+                }else{
+                  $window.alert("失敗しました。もう一度試してください。")
+                }
+              });
+              });
+          }
+        
+        $scope.fetchCellColor = function(){
+          listCellColorFactory.getDataCellColor('{!ermt__Project__c.Id}').then(function(res){
+            // $scope.CellColorList = [...res];
+            $scope.CellColorList = _.clone(res, true);
+          });
+        }
+        //GET CELLCOLOR LIST
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getCellColor}','{!ermt__Project__c.Id}', function(result, event) {
+            $scope.CellColorList = result; 
+            $scope.$apply();
+        });
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getCustomMetadataCellColor}', function(result, event) {
+          $scope.MetadataCellColor = result;
+          $scope.$apply();           
+          ButtonColor = $scope.MetadataCellColor;
+          for(var i =0 ; i< ButtonColor.length ;i++ ){
+            ButtonColor[i].Base_Value = ButtonColor[i].ermt__Base_Color__c.slice(1,10).toUpperCase();
+            ButtonColor[i].Dark_Value = ButtonColor[i].ermt__Dark_Color__c.slice(1,10).toUpperCase();
+          }
+          console.log("Metadata CellColor", ButtonColor);
+        });
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getAxisLabel}','{!ermt__Project__c.Id}', function(result, event) {
+          if(event.status){
+            console.log(result);
+            classificationObject = result;
+            $scope.xAxis = result.xAxis;
+            $scope.yAxis = result.yAxis;
+            if($scope.CellColorList.length == 0){
+              $scope.RequestList = [];
+              for(var i =0 ; i< $scope.xAxis.length ; i++){
+                for(var j =0 ; j <$scope.yAxis.length; j++){
+                  $scope.RequestList.push({
+                    'ermt__ColorCode__c': defaultColor,
+                    'ermt__XCordinate__c':$scope.xAxis[i].Id ,
+                    'ermt__YCordinate__c': $scope.yAxis[j].Id,
+                    'ermt__Project__c':'{!ermt__Project__c.Id}'
+                  });
+                }
+              }
+              Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.addCellColor}',$scope.RequestList,'{!ermt__Project__c.Id}', function(result, event) {
+              });
+
+            }
+            projectId = '{!ermt__Project__c.Id}';
+       
+            
+            $scope.objectRequestController = objectRequest;
+            $scope.viewNo = [];
+            for(var i = $scope.yAxis.length; i >= 1; i--){
+              for(var j = 1; j <= $scope.xAxis.length; j++){
+                var colorCell;
+                var colorLink;
+                for(var k = 0 ;k < $scope.CellColorList.length ; k++ ){
+                  if($scope.yAxis[i-1].Id == $scope.CellColorList[k].ermt__YCordinate__c && $scope.xAxis[j-1].Id == $scope.CellColorList[k].ermt__XCordinate__c){
+                      colorCell = $scope.CellColorList[k].ermt__ColorCode__c;
+                      colorLink = $scope.CellColorList[k].ermt__ColorLinkCode__c;
+                      break;
+                  }else{
+                    colorCell = defaultColor;
+                    colorLink = defaultColor;
+                  }
+                }
+                $scope.viewNo.push({x: j , y :i , color: colorLink ? colorLink : defaultColor});
+                $('.grid').append('<li><div id="cell-'+j+'-'+i+'" class="wrapper-column" style= "background-color: '+ colorCell + '"></div></li>');
+              }
+            }
+            $scope.$apply();
+            var wid_col = $('.grid li').outerWidth();
+            var hei_col = $('.grid li').outerHeight();
+            var wid_yAxis = $('.axis-y').outerWidth();
+            $('.grid').css({
+              'width': wid_col*$scope.xAxis.length + 1 + 'px',
+              'height': hei_col*$scope.yAxis.length + 1 + 'px'
+            });
+            $('.axis-x').css({
+              'width': wid_col*$scope.xAxis.length + 'px',
+              'margin-left': wid_yAxis + 25 + 'px'
+            });
+            $('.wrapper-page').css({
+              'width': wid_col*$scope.xAxis.length + 30 + wid_yAxis + 'px'
+            });
+          }
+        });
+
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getRiskOfProject}','{!ermt__Project__c.Id}', function(result, event) {
+          if(event.status){
+            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getAverageRisk}','{!ermt__Project__c.Id}',$scope.evaluationDefault, function(result2, event2) {
+              if(event2.status){
+                $scope.riskData = _.intersectionWith(_.cloneDeep(result), result2, function(x, y) {
+                  return x.Id === y.ermt__Risk__c && _.assign(x, y);
+                });
+              
+                angular.forEach($scope.riskData, function(item) {
+                  var x = item.avgLike?_.ceil(item.avgLike):1;
+                  var y = item.avgImpact?_.ceil(item.avgImpact):1;
+                  var color;
+                  for(var i =0 ; i< $scope.viewNo.length ; i++){
+                    if(x == $scope.viewNo[i].x && y == $scope.viewNo[i].y){
+                      color = $scope.viewNo[i].color;
+                      break;
+                    }
+                  }
+                  $('#cell-'+x+'-'+y).append('<a id="link-'+item.Id+'" class="record-link" href="/'+item.Id+'" title="" target="_blank" style="background-color: '+ color +'; color : black">'+item.Name+'</a>');
+                  // color ='';
+                  var avgLike = item.avgLike?_.ceil(item.avgLike,2):0;
+                  var avgImpact = item.avgImpact?_.ceil(item.avgImpact,2):0;
+                  $('#link-'+item.Id).tooltip({
+                    content: '<p>'+item.Name+'<br/>'+($scope.yAxis[0] ? $scope.yAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : '')+': '+avgLike+'<br/>'+($scope.xAxis[0] ? $scope.xAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : '')+': '+avgImpact+'</p>'
+                  });
+                });
+
+                
+              }
+            });
+          }
+        });
+       
+
+
+      });
+    </script>
+  </html>
+</apex:page>

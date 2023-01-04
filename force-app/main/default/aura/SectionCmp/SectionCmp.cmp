@@ -1,0 +1,23 @@
+<aura:component >
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:attribute name="section" type="Section__c"/>
+	<aura:attribute name="questions" type="List" default="[]"/>
+	<aura:attribute name="sectionTitle" type="string" default=""/>
+	<aura:attribute name="answers" type="List" default="[]"/> 
+	<aura:attribute name="disable" type="boolean" default="true"/>
+
+	<div>
+		<div class="section-container"> 
+
+			<h2 class="slds-text-heading_small ">{!v.sectionTitle}</h2>
+
+			<aura:if  isTrue="{! !empty(v.questions)}">
+				<aura:iteration items="{!v.questions}" var="question">
+						
+					<c:QuestionCmp disable="{!v.disable}" answers="{!v.answers}" question="{!question}"/> 
+
+				</aura:iteration>
+			</aura:if>
+	    </div>
+	</div>	
+</aura:component>

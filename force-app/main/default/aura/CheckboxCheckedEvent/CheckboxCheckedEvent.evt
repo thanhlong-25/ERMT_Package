@@ -1,0 +1,4 @@
+<aura:event type="APPLICATION">
+    <aura:attribute name="selectedId" type="String"/>
+    <aura:attribute name="isChecked" type="Boolean"/>
+</aura:event>

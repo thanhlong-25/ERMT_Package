@@ -1,0 +1,160 @@
+<template>
+    <lightning-layout>
+        <lightning-layout-item class="slds-align-middle" size="12">
+            <div class="slds-form-element">
+                <label class="slds-form-element__label" for="combobox-id-34">{labelPage.titleInput}</label>
+                <div class="slds-form-element__control">
+                    <div class="slds-combobox-group  slds-box--border">
+                        <div class="slds-combobox_object-switcher slds-combobox-addon_start">
+                            <div class="slds-form-element">
+                                <div class="slds-form-element__control">
+                                    <div class="slds-combobox_container">
+                                        <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click"
+                                            onclick={handleTriggerClick} data-key={configAction.groupAction}>
+                                            <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right"
+                                                role="none">
+                                                <button
+                                                    class="slds-input_faux slds-combobox__input-value slds-p-top_xxx-small slds-p-bottom_xx-small border-none"
+                                                    onclick={handleShowOptions}>
+                                                    <lightning-icon icon-name={valueShare.icon}
+                                                        alternative-text={valueShare.label} title={valueShare.label}>
+                                                        <label>{valueShare.label}</label>
+                                                    </lightning-icon>
+                                                </button>
+                                                <span
+                                                    class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right">
+                                                    <lightning-icon icon-name={configIcon.down}
+                                                        class="slds-icon-text-default" size="xx-small"
+                                                        aria-hidden="true">
+                                                    </lightning-icon>
+                                                </span>
+                                            </div>
+                                            <div data-name={configAction.groupAction}
+                                                class="slds-dropdown slds-dropdown_length-5 slds-dropdown_x-small slds-dropdown_left"
+                                                role="listbox" onmouseleave={closeOptions}>
+                                                <ul class="slds-listbox slds-listbox_vertical" role="group">
+                                                    <template for:each={optionShares} for:item="item">
+                                                        <li key={item.value} data-id={item.value} role="presentation"
+                                                            class="slds-listbox__item" onclick={handleSelectOption}>
+                                                            <div aria-checked="true"
+                                                                class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-is-selected"
+                                                                role="option">
+                                                                <span
+                                                                    class="slds-media__figure slds-listbox__option-icon">
+                                                                    <lightning-icon icon-name={item.icon}
+                                                                        alternative-text={item.label}
+                                                                        title={item.label}></lightning-icon>
+                                                                </span>
+                                                                <span class="slds-align-middle slds-p-left_small">
+                                                                    <span class="slds-truncate"
+                                                                        title={item.label}>{item.label}</span>
+                                                                </span>
+                                                            </div>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-combobox_container slds-combobox-addon_end">
+                            <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click"
+                                onclick={handleTriggerClick} data-key={configAction.userAction}
+                                id="primary-combobox-id-4">
+                                <fieldset role="none"
+                                    class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right">
+                                    <input type="text"
+                                        class="slds-input slds-combobox__input slds-p-top_xx-small slds-p-bottom_xx-small border-none"
+                                        id="combobox-id-34" aria-autocomplete="list" aria-controls="listbox-id-25"
+                                        aria-expanded="true" aria-haspopup="listbox" autocomplete="off" role="combobox"
+                                        placeholder={valueShare.placeholder} value={valueFilter}
+                                        onkeyup={handleChangeSeachObjectShare} onblur={closeResultSearchShare} />
+                                    <span
+                                        class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                                        <lightning-icon icon-name={configIcon.search} class="slds-icon-text-default"
+                                            size="x-small" aria-hidden="true">
+                                        </lightning-icon>
+                                    </span>
+
+                                    <div class="slds-dropdown slds-dropdown_length-with-icon-7  slds-dropdown_fluid"
+                                        role="listbox" data-name={configAction.userAction}
+                                        onmouseleave={closeResultSearchShare}>
+                                        <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                                            <li role="presentation" class="slds-listbox__item">
+                                                <div aria-selected="true" id="option0"
+                                                    class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_term slds-has-focus"
+                                                    role="option">
+                                                    <span class="slds-media__figure slds-listbox__option-icon">
+                                                        <span class="slds-icon_container slds-icon-utility-search"
+                                                            title="Search for term: ">
+                                                            <lightning-icon icon-name={configIcon.search}
+                                                                class="slds-icon-text-default"
+                                                                alternative-text={valueFilter} title={valueFilter}
+                                                                size="x-small" aria-hidden="true">
+                                                            </lightning-icon>
+                                                        </span>
+                                                    </span>
+                                                    <span class="slds-media__body">
+                                                        <span
+                                                            class="slds-listbox__option-text_entity">{valueFilter}</span>
+                                                    </span>
+                                                </div>
+                                            </li>
+                                            <template for:each={dataShare} for:item="item">
+                                                <li key={item.id} data-id={item.id} role="presentation"
+                                                    class="slds-listbox__item" onmousedown={handleSelectedShare}>
+                                                    <div class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta"
+                                                        role="option">
+                                                        <span class="slds-media__figure slds-listbox__option-icon">
+                                                            <span
+                                                                class="slds-icon_container slds-icon-standard-account">
+                                                                <lightning-icon icon-name={valueShare.icon}
+                                                                    alternative-text={valueShare.text}
+                                                                    title={valueShare.text}></lightning-icon>
+                                                            </span>
+                                                        </span>
+                                                        <span class="slds-media__body">
+                                                            <span
+                                                                class="slds-listbox__option-meta slds-listbox__option-meta_entity">{item.name}</span>
+                                                        </span>
+                                                    </div>
+                                                </li>
+                                            </template>
+                                        </ul>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-listbox_selection-group slds-is-expanded">
+                        <ul class="slds-listbox slds-listbox_horizontal" role="listbox" aria-label="Selected Options:"
+                            aria-orientation="horizontal">
+                            <template for:each={dataSelectedShare} for:item="itemRecordShare">
+                                <li class="slds-listbox-item" role="presentation" key={itemRecordShare.id}>
+                                    <span class="slds-pill" role="option" tabindex="0" aria-selected="true">
+                                        <span
+                                            class="slds-icon_container slds-icon-standard-account slds-pill__icon_container">
+                                            <lightning-icon icon-name={itemRecordShare.icon}
+                                                alternative-text={itemRecordShare.name} title={itemRecordShare.name}>
+                                            </lightning-icon>
+                                        </span>
+                                        <span class="slds-pill__label"
+                                            title="Salesforce Inc.">{itemRecordShare.name}</span>
+                                        <span class="slds-icon_container slds-pill__remove" title="Remove"
+                                            data-id={itemRecordShare.id} onclick={handleRemoveRecordShare}>
+                                            <lightning-icon icon-name={configIcon.close} class="slds-icon-text-default"
+                                                size="x-small" aria-hidden="true">
+                                            </lightning-icon>
+                                        </span>
+                                    </span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </lightning-layout-item>
+    </lightning-layout>
+</template>

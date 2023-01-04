@@ -1,0 +1,19 @@
+.sectionTitle {
+    /* font-size: var(--lwc-fontSize4); */
+    font-size: 0.875rem;
+    font-weight: var(--lwc-fontWeightBold);
+}
+.fieldLabel {
+    /* font-size: var(--lwc-fontSize2); */
+    font-size: 0.75rem;
+}
+.assignListWrap {
+    max-height: 360px;
+}
+.pageNumberItem {
+    text-align: center;
+}
+.pageNumberWrap {
+    display: inline-block;
+    width: 80px;
+}

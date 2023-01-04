@@ -1,0 +1,65 @@
+<template>
+    <div class="slds-form-element">
+        <label if:false={isLabelHidden} class="slds-form-element__label" for="combobox-id">
+            <abbr if:true={required} class="slds-required" title="required">* </abbr>{label}
+        </label>
+        <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click"
+                    aria-expanded="false" aria-haspopup="listbox" role="combobox"
+                    data-name="combobox"    
+                >
+                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <div if:true={isSearching} class="searching-spinner-wrap">
+                            <lightning-spinner alternative-text="Searching" size="small"></lightning-spinner>
+                        </div>
+                        <input type="text" class="slds-input slds-combobox__input slds-truncate" id="combobox-id"
+                            aria-autocomplete="list" aria-controls="listbox-id" autocomplete="off" role="textbox"
+                            data-name="combobox-input"
+                            readonly
+                            onfocus={handleInputFocus}
+                            onblur={handleInputBlur}
+                            onclick={handleInputClick}
+                        />
+                        <lightning-icon
+                            icon-name="utility:down"
+                            size="x-small"
+                            class="slds-input__icon slds-input__icon_right"
+                        ></lightning-icon>
+                    </div>
+                    <div id="listbox-id" class="slds-dropdown slds-dropdown_length-7 slds-dropdown_fluid" role="listbox"
+                        onmouseenter={handleDropdownMouseEnter}
+                        onmouseleave={handleDropdownMouseLeave}
+                    >
+                         <div if:true={classiTreeData}>
+                            <lightning-tree-grid
+                                data-name="classi-tree"
+                                columns={classiTreeColumns}
+                                data={classiTreeData}
+                                key-field="id"
+                                selected-rows={classiIds}
+                                resize-column-disabled="true"
+                                onrowselection={handleClassiTreeRowSelection}
+                                ontoggle={handleClassiTreeToggle}
+                            ></lightning-tree-grid>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <template if:true={errorMessages}>
+        <div class="slds-m-around_xx-small">
+            <template for:each={errorMessages} for:item="errMsg">
+                <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+            </template>
+        </div>
+    </template>
+    <template if:true={inputErrorMessages}>
+        <div class="slds-m-around_xx-small">
+            <template for:each={inputErrorMessages} for:item="errMsg">
+                <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+            </template>
+        </div>
+    </template>
+</template>

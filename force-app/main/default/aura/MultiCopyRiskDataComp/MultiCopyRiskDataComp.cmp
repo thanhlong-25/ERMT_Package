@@ -1,0 +1,7 @@
+<aura:component implements="force:lightningQuickAction,force:hasRecordId">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:attribute name="ids" type="String" />
+	<lightning:recordEditForm objectApiName="ermt__Risk__c">
+		<lightning:inputField fieldName="ermt__Project__c" />
+	</lightning:recordEditForm>
+</aura:component>

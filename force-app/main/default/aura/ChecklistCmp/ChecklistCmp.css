@@ -1,0 +1,5 @@
+.THIS .buttonTab{
+	display: flex;
+	border-bottom: 1px solid rgb(221, 219, 218);
+	padding-bottom: 10px;
+}

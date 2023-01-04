@@ -1,0 +1,81 @@
+<template>
+    <lightning-modal-header label={labelPage.headerPopup}></lightning-modal-header>
+    <lightning-modal-body>
+        <template if:true={isInitializable}>
+            <template if:true={isErrorsInitializable}>
+                <p>{isErrorsInitializable}</p>
+            </template>
+            <template if:false={isErrorsInitializable}>
+                <div class="main slds-grid slds-wrap slds-is-relative" onclick={handleTriggerClick}>
+                    <lightning-spinner if:true={isProcessing} alternative-text="Processing" variant="brand">
+                    </lightning-spinner>
+                    <div class="slds-col slds-size_1-of-1 slds-m-bottom--medium">
+                        <c-custom-sharing-record-input props-data={customSharingView}
+                            props-event={eventClickWithOutElement} onselected={eventSearchSelected}>
+                        </c-custom-sharing-record-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-m-bottom--medium">
+                        <lightning-layout class="slds-align-middle">
+                            <lightning-layout-item>
+                                <lightning-combobox label={labelPage.labelAccessLevel} required="true"
+                                    options={customSharingView.OPTION} onchange={eventAccessLevelSelected}
+                                    value={selectedAccessLevel}></lightning-combobox>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1 slds-m-bottom--medium">
+                        <div class="slds-section">
+                            <template if:false={initTable.isOpen}>
+                                <div class="slds-p-around_x-small"> {initTable.numberRowTable}
+                                    <button if:true={initTable.displayOpenTable}
+                                        class="slds-button slds-m-left_x-small advancedEditToggle"
+                                        onclick={openTableAction} data-action="table">{labelPage.editBtn}</button>
+                                </div>
+                            </template>
+                            <template if:true={initTable.isOpen}>
+                                <div
+                                    class="slds-section__title slds-theme--shade slds-p-left_x-small slds-text-body_regular">
+                                    <div style="flex: 1">
+                                        <span> {initTable.numberRowTable}</span>
+                                    </div>
+                                    <div style="flex: 1;justify-content: flex-end;text-align: right;">
+                                        <button class="slds-button slds-var-m-right_x-small"
+                                            onclick={navigateToHierarchy}
+                                            type="button">{labelPage.navigateHierarchy}</button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <template if:true={initTable.isOpen}>
+                            <div class="slds-p-around_x-small">
+                                <div onkeyup={handleFilterDataTable}>
+                                    <lightning-input name="search" class="slds-p-bottom_x-small slds-form-element"
+                                        placeholder="Filter groups of users" value={initTable.valueFilter} type="search"
+                                        is-loading={initTable.isInputLoading} onchange={handleFilterDataTable}
+                                        autocomplete="off">
+                                    </lightning-input>
+                                </div>
+                                <c-custom-sharing-record-table key-field="id" data={initTable.draftData}
+                                    columns={columns} class="slds-max-medium-table_stacked" hide-checkbox-column="false"
+                                    resize-column-disabled="true" onrowaction={handleRowAction}
+                                    onpicklistchanged={eventPicklistChanged} onrowselection={onRowSelection}>
+                                </c-custom-sharing-record-table>
+                                <template if:true={initTable.isFilterExist}>
+                                    <div class="slds-p-around_x-small">
+                                        {initTable.errorEmpty}
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </template>
+
+    </lightning-modal-body>
+    <lightning-modal-footer>
+        <lightning-button variant="neutral" label={labelPage.cancelBtn} onclick={handleCancel}></lightning-button>
+        <lightning-button variant="brand" label={labelPage.submitBtn} class="slds-m-left_x-small" onclick={eventSubmit}>
+        </lightning-button>
+    </lightning-modal-footer>
+</template>

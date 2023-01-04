@@ -1,0 +1,6 @@
+.title {
+    font-weight: var(--lwc-fontWeightBold,700);
+}
+.controlListWrap {
+    max-height: 315px;
+}

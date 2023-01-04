@@ -1,0 +1,24 @@
+<aura:component controller="ERMT_RiskCC" implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
+    <aura:html tag="style">
+		.cuf-content {
+		padding: 0 0rem !important;
+		}
+		.slds-p-around--medium {
+		padding: 0rem !important;
+		}       
+		.slds-modal__content{
+		height:unset !important;
+		max-height:unset !important;
+		}
+	</aura:html>
+    <div class="slds-col modal-header slds-modal__header"> 
+        <h2 class="title slds-text-heading--medium">{!$Label.c.Confirm_risk_classification}</h2>
+    </div>
+    <div class="slds-col modal-body scrollable slds-p-around--medium" style="min-height: 80px; max-height: 500px; overflow-y: auto !important">
+        <h4 style="padding: 10px">{!$Label.c.Are_you_sure}</h4>
+    </div>
+    <div class="slds-col modal-footer slds-modal__footer">
+        <button class="slds-button slds-button_neutral" onclick="{! c.hideSubmitPopup }">{!$Label.c.RiskClassificationConfirm_Cancel}</button>
+        <lightning:button variant="brand" name="save" label="{!$Label.c.RiskClassificationConfirm_Save}" onclick="{! c.handleSave }"/>
+    </div>
+</aura:component>

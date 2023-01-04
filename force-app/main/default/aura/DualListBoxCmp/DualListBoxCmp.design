@@ -1,0 +1,6 @@
+<design:component>
+	<design:attribute name="titleLabel" description="Title of dual listbox"/>
+	<design:attribute name="recordTypeName" description="Developer Name of record type want to show"/>
+	<design:attribute name="maximum" description="Maximum number of options required in the selected options list box"/>
+	<design:attribute name="fieldLevelHelp" description="Help text"/>
+</design:component>

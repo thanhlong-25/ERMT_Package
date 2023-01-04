@@ -1,0 +1,108 @@
+<apex:page showHeader="false" sidebar="false" standardController="Risk__c" recordSetVar="risks" extensions="ERMT_RiskCX" readOnly="true">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ng-app="SLDSApp">
+<head lang="en">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <apex:slds />  
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-filter/0.5.17/angular-filter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js"></script>
+  <style type="text/css"></style>
+</head>
+
+<body ng-controller="MainController">
+  <div class="slds-scope slds-align_absolute-center">
+    <div class="slds-form slds-box slds-form_stacked slds-m-top_large" style="width: 50%">
+      <button class="slds-button slds-button_brand" ng-click="copyData()">Copy Data</button>
+      <button class="slds-button slds-button_brand">New Project</button>
+      <div class="slds-form-element">
+        Selected Risk Ids: {{selectedIds}}
+      </div>
+      <div class="slds-form-element">
+        Selected Project Id: {{projectId}}
+      </div>
+      <div class="slds-m-top_large" style="height: 15rem;">
+        <div class="slds-form-element">
+          <label class="slds-form-element__label" for="combobox-id-2">Project</label>
+          <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+              <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open" aria-expanded="true" aria-haspopup="listbox" role="combobox">
+                <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                  <input ng-model="searchText" type="text" class="slds-input slds-combobox__input slds-has-focus" id="combobox-id-2" aria-autocomplete="list" aria-controls="listbox-id-2" autocomplete="off" role="textbox" placeholder="Search..." />
+                  <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">
+                    <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true">
+                      <use xlink:href="{!URLFOR($Asset.SLDS, '/assets/icons/utility-sprite/svg/symbols.svg#search')}" />
+                    </svg>
+                  </span>
+                </div>
+                <div ng-if="searchText" id="listbox-id-2" class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">
+                  <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+                    <li ng-repeat="project in projects | filter:searchText" role="presentation" class="slds-listbox__item">
+                      <div id="option1" class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">
+                        <span class="slds-media__figure">
+                          <span class="slds-icon_container slds-icon-standard-account">
+                            <svg class="slds-icon slds-icon_small" aria-hidden="true">
+                              <use xlink:href="{!URLFOR($Asset.SLDS, '/assets/icons/custom-sprite/svg/symbols.svg#custom49')}" />
+                            </svg>
+                          </span>
+                        </span>
+                        <span class="slds-media__body" ng-click="selectProject(project)">
+                          <span class="slds-listbox__option-text slds-listbox__option-text_entity">{{project.Name}}</span>
+                          <span class="slds-listbox__option-meta slds-listbox__option-meta_entity">{{project.Name}}</span>
+                        </span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  var app = angular.module('SLDSApp',['angular.filter']);
+  app.controller('MainController', function($scope,$filter, $location) {
+
+    $scope.selectedIds=[];
+    var matches = '{!selected}'.match(/\[(.*?)\]/);
+
+    if (matches) {
+      $scope.selectedIds = matches[1].split(",").map(function(item) {
+        return item.trim();
+      });
+    }
+    $scope.projects = [];
+    $scope.searchText = '';
+    $scope.projectId = '';
+    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_RiskCX.getAllProject}', function(result, event) {
+          $scope.projects = result;
+          console.log($scope.projects);
+          $scope.$apply();
+        });
+    $scope.selectProject = function (project) { 
+       $scope.searchText = project.Name;
+       $scope.projectId = project.Id;
+       console.log($scope.projectId);
+    };
+
+    $scope.copyData = function () { 
+      if($scope.selectedIds.length > 0 && $scope.projectId){
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_RiskCX.copyRiskData}',$scope.selectedIds,$scope.projectId, function(result, event) {
+          console.log(result);
+          if(result.isSuccess){
+            alert('Copy data success');
+          }
+          else{
+            alert(result.message);
+          }
+        });
+      }
+    };
+  });
+</script>
+</body>
+</html>
+</apex:page>

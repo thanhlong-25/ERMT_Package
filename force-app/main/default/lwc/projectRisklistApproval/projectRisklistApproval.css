@@ -1,0 +1,64 @@
+table.risklist {
+    width: auto;
+    border-collapse: separate;
+    border-top: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+    border-bottom: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.risklist tbody td,
+table.risklist tbody th {
+    border-top: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.risklist thead>tr+tr>th {
+    border-top: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.risklist td+td,
+table.risklist th+th,
+table.risklist th+td,
+table.risklist td+th {
+    border-left: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.risklist tr>th:first-child,
+table.risklist tr>td:first-child {
+    border-left: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.risklist tr>th:last-child,
+table.risklist tr>td:last-child {
+    border-right: var(--lwc-borderWidthThin,1px) solid var(--lwc-colorBorder,rgb(221, 219, 218));
+}
+table.risklist tbody tr.striped>th,
+table.risklist tbody tr.striped>td {
+    background-color: #f3f2f2;
+}
+table.risklist td .edit-button {
+    visibility: hidden; 
+}
+table.risklist td:hover .edit-button {
+    visibility: visible; 
+}
+table.risklist .is-edited {
+    background-color: var(--lwc-colorBackgroundHighlight,rgb(250, 255, 189)) !important;
+}
+table.risklist .is-error {
+    background-color: #ffcccc !important;
+}
+table.risklist .slds-resizable__divider:after {
+    height: auto;
+}
+table.risklist thead th .header1-item {
+    padding: .25rem .5rem;
+}
+table.risklist thead th a.slds-th__action {
+    height: auto;
+}
+.title {
+    font-weight: var(--lwc-fontWeightBold,700);
+}
+.fixedHeaderTop {
+    z-index: 2;
+}
+table.risklist .recordNo {
+    width: 2.2rem;
+}
+table.risklist .recordNo.header {
+    margin: 0.25rem 0.5rem;
+}

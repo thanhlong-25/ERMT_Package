@@ -1,0 +1,26 @@
+<aura:component controller="ERMT_RiskAssessCC" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:method name="sampleMethod" action="{!c.doAction}"> 
+		<aura:attribute name="riskAssessIdFromNew" type="String"/> 
+	</aura:method>
+	<aura:attribute name="records" type="Object[]"/>
+	<aura:attribute name="riskAssessField" type="RiskAssessment__c"/>
+	<aura:attribute name="riskAssessId" type="String" default="{!v.recordId}" />
+	<aura:attribute name="projectId" type="String" />
+	<aura:attribute name="recordTypeName" type="String" description="Developer Name of record type want to show" access="global"/>
+	<aura:attribute name="isNewRecord" type="Boolean" default="false"/>
+	<aura:attribute name="checkPermission" type="Boolean" default="true"/>
+	<aura:attribute name="hasEditPermission" type="Boolean" default="false"/>
+	<force:recordData
+		recordId="{!v.riskAssessId}"
+		targetFields="{!v.riskAssessField}"
+		recordUpdated="{! c.handleRecordChanged }"
+		fields="ermt__Risk__r.ermt__Project__c,RecordType.DeveloperName,ermt__isActive__c"/>
+		<aura:if isTrue="{!!empty(v.records)}">
+			<div class="">
+				<aura:iteration items="{!v.records}" var="record">
+					<c:RiskAssessClassiComboxCmp disabled="{! !((v.riskAssessField.RecordType.DeveloperName == 'Analysis') || and(v.hasEditPermission, v.riskAssessField.ermt__isActive__c) || v.isNewRecord)}" record="{!record}" riskAssessId="{!v.riskAssessId}" isNewRecord="{!v.isNewRecord}" aura:id="riskComboId"/>
+				</aura:iteration>
+			</div>
+		</aura:if>
+</aura:component>

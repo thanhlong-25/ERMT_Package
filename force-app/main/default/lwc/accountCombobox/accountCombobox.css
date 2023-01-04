@@ -1,0 +1,11 @@
+.searching-spinner-wrap {
+    position: absolute;
+    right: 3rem;
+    top: 0;
+    bottom: 0;
+}
+.slds-dropdown-trigger_click.is-open .slds-dropdown {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+}

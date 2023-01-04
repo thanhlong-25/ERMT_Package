@@ -1,0 +1,7 @@
+:host {
+  --c-border-none: none;
+}
+
+.border-none {
+  border: var(--c-border-none);
+}

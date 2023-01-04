@@ -1,0 +1,28 @@
+<aura:component >
+	<aura:attribute name="recordTypeId" type="String" />
+	<aura:attribute name="recordViewId" type="String" />
+    <aura:attribute name="riskId" type="String" />
+    <aura:attribute name="beforeRiskAssessId" type="String" />
+    <aura:attribute name="isLoaded" type="Boolean" default="false" />
+	<lightning:overlayLibrary aura:id="overlayLib"/>
+    <lightning:recordForm 
+        recordId="{!v.recordViewId}" 
+        objectApiName="ermt__RiskAssessment__c"
+        fields="ermt__RiskClassification__c" 
+        columns="1"
+        mode="readonly" 
+        onload="{!c.onLoaded}"/>
+        <aura:if isTrue="{!v.isLoaded}">
+            <lightning:recordEditForm objectApiName="ermt__RiskAssessment__c" onsuccess="{!c.onSuccess}">
+                <lightning:messages />
+                <lightning:inputField fieldName="ermt__Risk__c" />
+                <lightning:inputField fieldName="ermt__beforeAssessment__c"/>
+                <div class="slds-clearfix">
+                    <div class="slds-float_right">
+                      <lightning:button class="slds-m-top_small" variant="Neutral" type="button" onclick="{!c.onCancel}" label="Cancel" />
+                      <lightning:button class="slds-m-top_small" variant="brand" type="submit" name="save" label="Save" />
+                  </div>
+              </div>
+          </lightning:recordEditForm>
+        </aura:if>
+</aura:component>

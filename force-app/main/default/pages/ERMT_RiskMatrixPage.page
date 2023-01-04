@@ -1,0 +1,355 @@
+<apex:page sidebar="false" showHeader="false" standardController="Project__c" extensions="ERMT_ProjectCX" docType="html-5.0" >
+  <html ng-app="SLDSApp">
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <apex:slds />
+       <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script> 
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js"></script>
+      <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+      <script src="//cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js"></script>
+      <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.js"></script> -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.min.js"></script>
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
+      <style>
+        .wrapper-page {
+          width: 890px;
+          margin: 50px auto;
+        }
+        .axis-y {
+          display: inline-block;
+          vertical-align: top;
+          margin-right: 20px;
+          position: relative;
+        }
+        .axis-y .label-axis-y {
+          position: absolute;
+          top: -25px;
+          right:-123px;
+          width: 200px;
+          text-align: center;
+        }
+        .axis-y li{
+          display: block;
+          padding: 0;
+          margin: 0;
+          height: 100px;
+          line-height: 100px;
+          text-align: right;
+        }
+        .axis-y li .num {
+          float: right;
+          margin-left: 10px;
+        }
+        .axis-x {
+          width: 450px;
+          position: relative;
+        }
+        .axis-x .label-axis-x {
+          position: absolute;
+          top: 0;
+          right: -65px;
+        }
+        .axis-x ul{
+          display: flex;
+          justify-content: space-between;
+        }
+        .axis-x ul li{
+          width: 150px;
+          text-align: center;
+          margin:0;
+          padding:0;
+        }
+        .axis-x li .num {
+          display: block;
+          margin: 15px 0 5px;
+        }
+        .grid{
+          display: inline-table;
+          width: 451px;
+          height: 301px;
+          background-color: #F3F2F2;
+          border-left: solid 1px #F3F2F2;
+          border-top: solid 1px #F3F2F2;
+        }
+        .grid li {
+          width: 150px;
+          height: 100px;
+          padding: 0;
+          margin: 0;
+          /*border-top: solid 1px #ccc;
+          border-right: solid 1px #ccc;
+          display: inline-grid;
+          display: -webkit-inline-box;
+          display: -ms-inline-grid;*/
+          display: block;
+          float: left;
+          text-align: center;
+        }
+        .grid li .wrapper-column{
+          padding: 5px;
+          overflow: auto;
+          width: 149px;
+          height: 99px;
+        }
+        .grid li .wrapper-column .record-link {
+          border: solid 1px #ccc;
+          padding: 0 5px;
+          display: block;
+          color: #fff; 
+          margin-bottom: 5px;
+          text-overflow: ellipsis;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        #id_selectEvaluation{
+          width: 150px;
+          margin-left: -83px; 
+          border-radius: .25rem; 
+          padding-left: .5rem;
+          padding-right: 0.1rem; 
+          border: 1px solid rgb(221, 219, 218); 
+          height: calc(1.875rem + (1px * 2));
+      }
+      #id_evaluation{
+        width: 250px;
+        margin-left: -350px;
+        margin-bottom: -33px;
+        text-align: right;
+      }
+      #btnSave{
+        margin-bottom: 38px; 
+        margin-left: -45px; 
+        width: 112px;
+      }
+      #button-down{
+        margin-left: 92.5%;
+        margin-bottom: 5px; 
+        margin-top: -2% ;
+      }
+      .wrapper-page{
+          text-align: center; 
+          background-color: white;
+      }
+      </style>
+    </head>
+    <body ng-controller="MainController">
+      <div class="wrapper-page">
+        <div id="button-down" ng-if="{!$Permission.ermt__Can_download_chart_image}">
+          <button  class="slds-button slds-button_neutral slds-m-right_x-large" id="btnSave" >ダウンロード</button>
+
+          <p id="id_evaluation">{{evaluationLabel}}</p>
+          <select  id="id_selectEvaluation" class="slds-m-around_x-small" ng-init="selected = evaluationList[0]" ng-model="selectedValuation" ng-change="ChangeEvaluation(selectedValuation)" ng-options="e as e.label for e in evaluationList">
+          </select>
+
+
+        </div>
+        <div class="axis-y">
+          <p class="label-axis-y">{{yAxis[0] ? yAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : ''}}</p>
+          <ul>
+            <li ng-repeat="y in yAxis | orderBy:'ermt__ViewNo__c':true">{{y.ermt__Label__c}}<span class="num">{{y.ermt__ViewNo__c}}</span></li>
+          </ul>
+        </div>
+        <!-- end left asix y-->
+        <ul class="grid">
+          <!--
+            repeat li 25 times
+            <li>
+                <div class="wrapper-column">
+                    <a class="record-link" href="#">this is grid</a>
+                </div>
+            </li>
+            -->
+        </ul>
+        <div class="axis-x">
+          <p class="label-axis-x">{{xAxis[0] ? xAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : ''}}</p>
+          <ul>
+            <li ng-repeat="x in xAxis | orderBy:'ermt__ViewNo__c'"><span class="num">{{x.ermt__ViewNo__c}}</span>{{x.ermt__Label__c}}</li>
+          </ul>
+        </div>
+        <!-- end asix x  -->
+      </div>
+      <!--end wrapper-page-->
+    </body>
+    <script type="text/javascript">
+    var projectName = '';
+
+      $(function() { 
+          $("#btnSave").click(function() { 
+
+            document.getElementById("btnSave").style.visibility = 'hidden';
+            // var $clone = $('<div>').append($('body').html())
+            // $clone.find('script').remove();
+            // console.log('body' , document.body);
+            // var cloneBody = $('body').html($clone.html());
+            
+
+            html2canvas(document.body, {
+              // width: 1200,
+              // height: 800,
+              onrendered: function(canvas) {
+                theCanvas = canvas;
+
+                 if (canvas.msToBlob) { //for IE
+                  var blob = canvas.msToBlob();
+                  window.navigator.msSaveBlob(blob, '{!ermt__Project__c.Name}' + ".png");
+                } 
+                else{
+                  canvas.toBlob(function(blob) {
+                    saveAs(blob, '{!ermt__Project__c.Name}' + ".png"); 
+                  });
+                }
+                
+                document.getElementById("btnSave").style.visibility = 'visible';
+              }
+            });
+             
+          });
+        }); 
+
+      $(document).ready(function(){
+          // for(var i=0; i<25; i++){
+          //     $('.grid').append('<li><div class="wrapper-column"><a class="record-link" href="#" title="">this is grid</a></div></li>');
+          // }
+      
+          // $( ".record-link" ).tooltip({
+          //   content: "<p>Awesome title!<br/>this is new line</p>"
+          // });
+      });
+      defaultColor ="#FFFFFF"
+
+      var app = angular.module("SLDSApp",[]);
+      app.controller('MainController', function($scope) {
+        $scope.xAxis = [];
+        $scope.yAxis = [];
+        $scope.riskData = [];
+        $scope.riskList = [];
+        $scope.evaluationList = [];
+        $scope.selectedValuation = {label:"なし" , value: "なし"};
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getCellColor}','{!ermt__Project__c.Id}', function(result, event) {
+            $scope.CellColorList = result; 
+            $scope.$apply();
+        });
+        //  projectName = '{!ermt__Project__c.Name}';
+        // console.log('name' , '{!ermt__Project__c.Name}');
+
+
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getRiskOfProject}','{!ermt__Project__c.Id}', function(result, event) {
+          $scope.riskList = result;
+          $scope.status =  event.status;
+          $scope.$apply();
+        });
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getEvaluationList}','{!ermt__Project__c.Id}', function(result, event) {
+           // console.log(result);
+           angular.forEach(result, function(a) {
+            $scope.evaluationLabel = a.ermt__ParentMClassification_del__r.ermt__Label__c;
+            $scope.evaluationList.push({label:a.ermt__Label__c , value: a.ermt__Label__c});
+           });
+           $scope.evaluationList.unshift({label:"なし" , value: "なし"});
+           $scope.selectedValuation = $scope.evaluationList[0];
+           // console.log($scope.evaluationList);
+           $scope.$apply();
+        });
+        $scope.ChangeEvaluation = function(e){
+          $scope.selectedValuation = e;
+          // var element = document.getElementsByTagName("a"), index;
+          // for (index = element.length - 1; index >= 0; index--) {
+          //     element[index].parentNode.removeChild(element[index]);
+          // }
+
+          var elements = document.getElementsByTagName('a');
+          while (elements[0]) elements[0].parentNode.removeChild(elements[0]);
+          
+          $scope.refreshChart();
+        }
+        Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getAxisLabel}','{!ermt__Project__c.Id}', function(result, event) {
+          if(event.status){
+            // console.log(result);
+            $scope.xAxis = result.xAxis;
+            $scope.yAxis = result.yAxis;
+            // for(var i = $scope.yAxis.length; i >= 1; i--){
+            //   for(var j = 1; j <= $scope.xAxis.length; j++){
+            //     $('.grid').append('<li><div id="cell-'+j+'-'+i+'" class="wrapper-column"></div></li>');
+            //   }
+            // }
+            $scope.viewNo = [];
+            for(var i = $scope.yAxis.length; i >= 1; i--){
+              for(var j = 1; j <= $scope.xAxis.length; j++){
+                var colorCell;
+                var colorLink;
+                for(var k = 0 ;k < $scope.CellColorList.length ; k++ ){
+                
+                  if($scope.yAxis[i-1].Id == $scope.CellColorList[k].ermt__YCordinate__c && $scope.xAxis[j-1].Id == $scope.CellColorList[k].ermt__XCordinate__c){
+                      colorCell = $scope.CellColorList[k].ermt__ColorCode__c;
+                      colorLink = $scope.CellColorList[k].ermt__ColorLinkCode__c;
+                      break;
+                  }else{
+                    colorCell = defaultColor;
+                    colorLink = defaultColor;
+                  }
+                }
+                $scope.viewNo.push({x: j , y :i , color: colorLink ? colorLink : defaultColor});
+                $('.grid').append('<li><div id="cell-'+j+'-'+i+'" class="wrapper-column" style= "background-color: '+ colorCell + '"></div></li>');
+              }
+            }
+            $scope.$apply();
+            var wid_col = $('.grid li').outerWidth();
+            var hei_col = $('.grid li').outerHeight();
+            var wid_yAxis = $('.axis-y').outerWidth();
+            $('.grid').css({
+              'width': wid_col*$scope.xAxis.length + 1 + 'px',
+              'height': hei_col*$scope.yAxis.length + 1 + 'px'
+            });
+            $('.axis-x').css({
+              'width': wid_col*$scope.xAxis.length + 'px',
+              'margin-left': wid_yAxis + 25 + 'px'
+            });
+            $('.wrapper-page').css({
+              'width': wid_col*$scope.xAxis.length + 30 + wid_yAxis + 'px'
+            });
+          }
+          $scope.refreshChart();
+        });
+
+
+
+        $scope.refreshChart = function(){
+          if($scope.status){
+            Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getAverageRisk}',
+              '{!ermt__Project__c.Id}',
+              $scope.selectedValuation.value,
+               function(result2, event2) {
+              if(event2.status){
+                $scope.riskData = _.intersectionWith(_.cloneDeep($scope.riskList), result2, function(x, y) {
+                  return x.Id === y.ermt__Risk__c && _.assign(x, y);
+                });
+                // console.log($scope.riskData);
+                angular.forEach($scope.riskData, function(item) {
+                  var x = item.avgLike?_.ceil(item.avgLike):1;
+                  var y = item.avgImpact?_.ceil(item.avgImpact):1;
+                  var color;
+                  for(var i =0 ; i< $scope.viewNo.length ; i++){
+                    if(x == $scope.viewNo[i].x && y == $scope.viewNo[i].y){
+                      color = $scope.viewNo[i].color;
+                      break;
+                    }
+                  }
+                  $('#cell-'+x+'-'+y).append('<a id="link-'+item.Id+'" class="record-link" href="/'+item.Id+'" title="" target="_blank" style="background-color: '+ color +' ; color : black">'+item.Name+'</a>');
+
+                  var avgLike = item.avgLike?_.ceil(item.avgLike,2):0;
+                  var avgImpact = item.avgImpact?_.ceil(item.avgImpact,2):0;
+                  $('#link-'+item.Id).tooltip({
+                    content: '<p>'+item.Name+'<br/>'+($scope.xAxis[0] ? $scope.xAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : '')+': '+avgLike+'<br/>'+($scope.yAxis[0] ? $scope.yAxis[0].ermt__ParentMClassification_del__r.ermt__Label__c : '')+': '+avgImpact+'</p>'
+                  });
+                });
+
+                
+              }
+            });
+          }
+
+        };
+      });
+    </script>
+  </html>
+</apex:page>

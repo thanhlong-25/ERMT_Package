@@ -1,0 +1,23 @@
+<template>
+    <div class="slds-form-element slds-form-element_readonly">
+        <span if:false={isLabelHidden} class="slds-form-element__label">{label}</span>
+        <div class="slds-form-element__control">
+            <div class="slds-form-element__static">
+                <template for:each={classis} for:item="classi">
+                    <span key={classi} class="slds-badge slds-badge_lightest" style="max-width:100%;">
+                        <a href={classi.url} title={classi.title} target="_blank" class="slds-truncate">
+                            {classi.label}
+                        </a>
+                    </span>
+                </template>
+            </div>
+        </div>
+    </div>
+    <template if:true={errorMessages}>
+        <div class="slds-m-around_xx-small">
+            <template for:each={errorMessages} for:item="errMsg">
+                <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+            </template>
+        </div>
+    </template>
+</template>

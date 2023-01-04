@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>55.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>変更履歴リスト</masterLabel>
+    <targets>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property label="Object History Log" name="objectHistoryLog" default="ermt__Risk__c" type="String" datasource="ermt__Risk__c,ermt__Incident__c, ermt__Control__c, ermt__Incident_Risk_Junc__c, 	ermt__Incident_Control_Junc__c, ermt__Risk_Control_Junc__c" required="true"/>
+            <property label="Listview" name="listview" default="「追加・削除・変更」" type="String" datasource="「追加・削除のみ」,「追加・削除・変更」" required="true"/>
+            <objects>
+                <object>ermt__Risk__c</object>
+                <object>ermt__Incident__c</object>
+                <object>ermt__Control__c</object>
+            </objects>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

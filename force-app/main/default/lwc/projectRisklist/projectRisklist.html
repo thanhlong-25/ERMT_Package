@@ -1,0 +1,636 @@
+<template>
+    <lightning-card icon-name="custom:custom75"
+        class="main"
+        onclick={handleMainClick}
+    >
+        <lightning-spinner if:true={isProcessing} alternative-text="Processing" variant="brand"></lightning-spinner>
+        <div slot="title">
+            <span class="title">{label.title}</span>
+        </div>
+        <div slot="actions">
+            <lightning-button-group>
+                <lightning-button-icon icon-name="utility:search"
+                    alternative-text={label.searchCondition} title={label.searchCondition}
+                    onclick={handleSearchConditionClick}></lightning-button-icon>
+                <lightning-button-icon icon-name="utility:table_settings"
+                    alternative-text={label.displayFieldsSetting} title={label.displayFieldsSetting}
+                    onclick={handleDisplayFieldsSettingClick}></lightning-button-icon>
+            </lightning-button-group>
+        </div>
+        <div class="">
+            <div if:true={errorMessages}
+                class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+                <lightning-icon icon-name="utility:error" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                <h2>
+                    <template for:each={errorMessages} for:item="errMsg">
+                        <p key={errMsg}>{errMsg}</p>
+                    </template>
+                </h2>
+                <div class="slds-notify__close">
+                    <button class="slds-button slds-button_icon slds-button_icon-small slds-button_icon-inverse"
+                        onclick={handleErrorAlertCloseClick}>
+                        <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                    </button>
+                </div>
+            </div>
+            <div class="slds-grid slds-gutters_x-small slds-m-horizontal_small slds-m-top_small">
+                <div class="slds-col slds-grow-none">
+                    <div class="slds-text-body_regular">
+                        {pageInfo.resultSize}{label.list_number}
+                    </div>
+                </div>
+                <div class="slds-col slds-grow-none">
+                    <div class="slds-text-body_regular">
+                        {pageInfo.pageNumber}/{pageInfo.lastPageNumber}{label.list_page}
+                    </div>
+                </div>
+                <div class="slds-col slds-grow-none">
+                    <div class="slds-text-body_regular">
+                        <a if:true={isFirstPageEnable}
+                            href="javascript:void(0);"
+                            data-name="first-page"
+                            onclick={handlePageMoveClick}>{label.list_first}</a>
+                        <span if:false={isFirstPageEnable} class="slds-text-color_weak">{label.list_first}</span>
+                    </div>
+                </div>
+                <div class="slds-col slds-grow-none">
+                    <div class="slds-text-body_regular">
+                        <a if:true={isPreviousPageEnable}
+                            href="javascript:void(0);"
+                            data-name="previous-page"
+                            onclick={handlePageMoveClick}>{label.list_previous}</a>
+                        <span if:false={isPreviousPageEnable} class="slds-text-color_weak">{label.list_previous}</span>
+                    </div>
+                </div>
+                <div class="slds-col slds-grow-none">
+                    <div class="slds-text-body_regular">
+                        <a if:true={isNextPageEnable}
+                            href="javascript:void(0);"
+                            data-name="next-page"
+                            onclick={handlePageMoveClick}>{label.list_next}</a>
+                        <span if:false={isNextPageEnable} class="slds-text-color_weak">{label.list_next}</span>
+                    </div>
+                </div>
+                <div class="slds-col slds-grow-none">
+                    <div class="slds-text-body_regular">
+                        <a if:true={isLastPageEnable}
+                            href="javascript:void(0);"
+                            data-name="last-page"
+                            onclick={handlePageMoveClick}>{label.list_last}</a>
+                        <span if:false={isLastPageEnable} class="slds-text-color_weak">{label.list_last}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-m-horizontal_small slds-m-bottom_small slds-scrollable slds-is-relative" style={risklistWrapStyle}
+                onmousemove={handleColumnWidthMousemove}
+                onmouseup={handleColumnWidthMouseup}
+                onscroll={handleRisklistWrapScroll}
+            >
+                <!-- 固定見出し（上） -->
+                <div class="slds-is-absolute fixedHeaderTop" style={fixedHeaderTop.style}>
+                    <table class="slds-table slds-no-row-hover slds-table_resizable-cols risklist">
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <th rowspan="2" class="" scope="col">
+                                    <div class="recordNo header"></div>
+                                </th>
+                                <template if:true={header1} for:each={header1} for:item="cell">
+                                    <th key={cell} colspan={cell.colspan} class="" scope="col">
+                                        <div class="slds-truncate header1-item" title={cell.text}>{cell.text}</div>
+                                    </th>
+                                </template>
+                            </tr>
+                            <tr class="slds-line-height_reset">
+                                <template if:true={header2} for:each={header2} for:item="cell">
+                                    <th key={cell} class={cell.cellClass} scope="col">
+                                        <a class="slds-th__action slds-text-link_reset" href="javascript:void(0);" role="button" tabindex="0"
+                                            data-col={cell.col}
+                                            onclick={handleColumnSortClick}>
+                                            <span class="slds-assistive-text">Sort by: </span>
+                                            <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate col-width"
+                                                style={cell.colWidthStyle}>
+                                                <div class="slds-truncate" title={cell.text}>{cell.text}</div>
+                                                <span class="slds-icon_container slds-icon-utility-arrowdown">
+                                                    <svg class="slds-icon slds-icon-text-default slds-is-sortable__icon" aria-hidden="true">
+                                                        <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#arrowdown"></use>
+                                                    </svg>
+                                                </span>
+                                            </div>
+                                        </a>
+                                        <div class="slds-resizable">
+                                            <input type="range" aria-label="" class="slds-resizable__input slds-assistive-text"
+                                                max="1000" min="20" tabindex="0" />
+                                            <span class="slds-resizable__handle"
+                                                data-col={cell.col}
+                                                onmousedown={handleColumnWidthMousedown}>
+                                                <span class="slds-resizable__divider"></span>
+                                            </span>
+                                        </div>
+                                    </th>
+                                </template>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <!-- 本体 -->
+                <table class="slds-table slds-no-row-hover slds-table_resizable-cols risklist">
+                    <thead style="visibility:hidden;">
+                        <tr class="slds-line-height_reset">
+                            <th rowspan="2" class="" scope="col">
+                                <div class="recordNo header"></div>
+                            </th>
+                            <template if:true={header1} for:each={header1} for:item="cell">
+                                <th key={cell} colspan={cell.colspan} class="" scope="col">
+                                    <div class="slds-truncate header1-item" title={cell.text}>{cell.text}</div>
+                                </th>
+                            </template>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            <template if:true={header2} for:each={header2} for:item="cell">
+                                <th key={cell} class={cell.cellClass} scope="col">
+                                    <a class="slds-th__action slds-text-link_reset" href="javascript:void(0);" role="button" tabindex="0"
+                                        data-col={cell.col}
+                                        onclick={handleColumnSortClick}>
+                                        <span class="slds-assistive-text">Sort by: </span>
+                                        <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate col-width"
+                                            style={cell.colWidthStyle}>
+                                            <div class="slds-truncate" title={cell.text}>{cell.text}</div>
+                                            <span class="slds-icon_container slds-icon-utility-arrowdown">
+                                                <svg class="slds-icon slds-icon-text-default slds-is-sortable__icon" aria-hidden="true">
+                                                    <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#arrowdown"></use>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </a>
+                                    <div class="slds-resizable">
+                                        <input type="range" aria-label="" class="slds-resizable__input slds-assistive-text"
+                                            max="1000" min="20" tabindex="0" />
+                                        <span class="slds-resizable__handle"
+                                            data-col={cell.col}
+                                            onmousedown={handleColumnWidthMousedown}>
+                                            <span class="slds-resizable__divider"></span>
+                                        </span>
+                                    </div>
+                                </th>
+                            </template>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template if:true={detail} for:each={detail} for:item="record">
+                            <tr key={record} class={record.rowClass}>
+                                <td>
+                                    <div class="recordNo">
+                                        <div class="slds-truncate slds-text-align_center" title={record.no}>
+                                            {record.no}
+                                        </div>
+                                    </div>
+                                </td>
+                                <template for:each={record.cells} for:item="cell">
+                                    <td key={cell} rowspan={cell.rowspan} class={cell.item.cellClass}>
+                                        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center" style={cell.colWidthStyle}>
+                                            <span class="slds-truncate" title={cell.item.text}>
+                                                <span if:false={cell.item.url}>
+                                                    <template if:true={cell.item.isIncidentLinksField}>
+                                                        <lightning-formatted-rich-text value={cell.item.text}></lightning-formatted-rich-text>
+                                                    </template>
+                                                    <template if:false={cell.item.isIncidentLinksField}>
+                                                        {cell.item.text}
+                                                    </template>
+                                                </span>
+                                                <a if:true={cell.item.url} href={cell.item.url} target="_blank">
+                                                    {cell.item.text}
+                                                </a>
+                                            </span>
+                                            <lightning-button-icon
+                                                if:true={cell.item.isEditable}
+                                                data-row={cell.row}
+                                                data-col={cell.col}
+                                                class="slds-m-left_x-small edit-button"
+                                                icon-name="utility:edit"
+                                                variant="container"
+                                                size="small"
+                                                onclick={handleEditClick}
+                                            ></lightning-button-icon>
+                                        </div>
+                                        <section
+                                            if:true={cell.isEditing}
+                                            class="slds-popover slds-popover_edit"
+                                            role="dialog"
+                                            style="z-index:1;position:absolute;top:0;left:0.0625rem"
+                                            onclick={handleEditPopoverClick}
+                                        >
+                                            <div class="slds-popover__body">
+                                                <lightning-button-icon
+                                                    data-row={cell.row}
+                                                    data-col={cell.col}
+                                                    class="slds-float_right slds-popover__close"
+                                                    icon-name="utility:close"
+                                                    variant="container"
+                                                    size="small"
+                                                    onclick={handleEditPopoverCloseClick}
+                                                ></lightning-button-icon>
+                                                <div class="slds-grid slds-grid_vertical-align-center slds-m-left_xx-small slds-m-right_x-large">
+                                                    <div if:true={cell.item.isRequired} class="slds-col slds-grow-none">
+                                                        <abbr class="slds-float_left slds-required" title="required">* </abbr>
+                                                    </div>
+                                                    <div class="slds-col" style="width:100%;">
+                                                        <c-field-value-input
+                                                            if:true={cell.item.isInputModeNormal}
+                                                            data-row={cell.row}
+                                                            data-col={cell.col}
+                                                            object-name={cell.item.objectName}
+                                                            field-name={cell.item.fieldName}
+                                                            value={cell.item.value}
+                                                            required={cell.item.isRequired}
+                                                            oninputchange={handleValueChange}
+                                                        ></c-field-value-input>
+                                                        <c-risk-assessment-classi-combobox
+                                                            if:true={cell.item.isInputModeRiskAssessClassi}
+                                                            data-row={cell.row}
+                                                            data-col={cell.col}
+                                                            project-id={recordId}
+                                                            classi-record-type-name={cell.item.fieldName}
+                                                            value={cell.item.value}
+                                                            required={cell.item.isRequired}
+                                                            oninputchange={handleValueChange}
+                                                        ></c-risk-assessment-classi-combobox>
+                                                        <c-record-lookup
+                                                            if:true={cell.item.isInputModeControl}
+                                                            data-row={cell.row}
+                                                            data-col={cell.col}
+                                                            object-name={controlObjectName}
+                                                            value={cell.item.value}
+                                                            required={cell.item.isRequired}
+                                                            onselectionchange={handleValueChange}
+                                                        ></c-record-lookup>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </td>
+                                </template>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div slot="footer">
+            <template if:true={isEditing}>
+                <lightning-button label={label.cancel} class="slds-m-horizontal_x-small"
+                        onclick={handleEditCancelClick}></lightning-button>
+                <lightning-button label={label.save} variant="brand" class="slds-m-horizontal_x-small"
+                    onclick={handleEditSaveClick}></lightning-button>
+            </template>
+        </div>
+    </lightning-card>
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-hide" data-name="display-fields-setting-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleDisplayFieldsSettingCancelClick}></lightning-button>
+                <div class="slds-text-title">{label.title}</div>
+                <h2 class="slds-modal__title slds-hyphenate">{label.displayFieldsSetting}</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">
+                <div if:true={isEditing} class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning" role="alert">
+                    <lightning-icon icon-name="utility:warning" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                    <h2>{label.editWarning}</h2>
+                </div>
+                <div class="slds-m-bottom_small">
+                    <lightning-dual-listbox
+                        label={label.risk}
+                        source-label={label.selectable}
+                        selected-label={label.selected}
+                        options={riskDisplayFieldNameSels}
+                        value={dispFieldNameTemp.risk}
+                        size="3"
+                        required
+                        onchange={handleRiskDisplayFieldNameChange}></lightning-dual-listbox>
+                </div>
+                <div class="slds-m-bottom_small">
+                    <lightning-dual-listbox
+                        label={label.riskAssessment}
+                        source-label={label.selectable}
+                        selected-label={label.selected}
+                        options={riskAssessmentDisplayFieldNameSels}
+                        value={dispFieldNameTemp.riskAssessment}
+                        size="3"
+                        required
+                        onchange={handleRiskAssessmentDisplayFieldNameChange}></lightning-dual-listbox>
+                </div>
+                <div class="slds-m-bottom_small">
+                    <lightning-dual-listbox
+                        label={label.control}
+                        source-label={label.selectable}
+                        selected-label={label.selected}
+                        options={controlDisplayFieldNameSels}
+                        value={dispFieldNameTemp.control}
+                        size="3"
+                        required
+                        onchange={handleControlDisplayFieldNameChange}></lightning-dual-listbox>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label={label.cancel} class="slds-m-horizontal_xx-small"
+                    onclick={handleDisplayFieldsSettingCancelClick}></lightning-button>
+                <lightning-button label={label.ok} variant="brand" class="slds-m-horizontal_xx-small"
+                    onclick={handleDisplayFieldsSettingOkClick}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-modal_small slds-hide" data-name="search-condition-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleSearchConditionCancelClick}></lightning-button>
+                <div class="slds-text-title">{label.title}</div>
+                <h2 class="slds-modal__title slds-hyphenate">{label.searchCondition}</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">
+                <div if:true={isEditing} class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning" role="alert">
+                    <lightning-icon icon-name="utility:warning" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                    <h2>{label.editWarning}</h2>
+                </div>
+                <div class="slds-section slds-is-open">
+                    <div class="slds-section__title slds-theme_shade">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col">
+                                <h3>
+                                    <span class="slds-truncate slds-p-horizontal_small" title={label.risk}>
+                                        {label.risk}
+                                    </span>
+                                </h3>
+                            </div>
+                            <div class="slds-col">
+                                <lightning-input type="toggle"
+                                    label=""
+                                    checked={searchCondTemp.risk.isEnabled}
+                                    message-toggle-active=""
+                                    message-toggle-inactive=""
+                                    variant="label-hidden"
+                                    onchange={handleRiskSearchCondEnableChange}>
+                                </lightning-input>
+                            </div>
+                        </div>
+                    </div>
+                    <div class={riskSearchCondClass}>
+                        <div class="slds-m-horizontal_medium">
+                            <c-record-search-condition
+                                data-name="risk-serach-condition"
+                                object-name={riskObjectName}
+                                value={searchCondTempRisk}
+                                is-search-hide="true"
+                                onedit={handleRiskSearchCondEdit}
+                            ></c-record-search-condition>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-section slds-is-open">
+                    <div class="slds-section__title slds-theme_shade">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col">
+                                <h3>
+                                    <span class="slds-truncate slds-p-horizontal_small" title={label.riskAssessment}>
+                                        {label.riskAssessment}
+                                    </span>
+                                </h3>
+                            </div>
+                            <div class="slds-col">
+                                <lightning-input type="toggle"
+                                    label=""
+                                    checked={searchCondTemp.riskAssessment.isEnabled}
+                                    message-toggle-active=""
+                                    message-toggle-inactive=""
+                                    variant="label-hidden"
+                                    onchange={handleRiskAssessSearchCondEnableChange}>
+                                </lightning-input>
+                            </div>
+                        </div>
+                    </div>
+                    <div class={riskAssessmentSearchCondClass}>
+                        <div class="slds-m-horizontal_medium">
+                            <c-record-search-condition
+                                data-name="riskAssessment-serach-condition"
+                                object-name={riskAssessmentObjectName}
+                                value={searchCondTempRiskAssessment}
+                                is-search-hide="true"
+                                onedit={handleRiskAssessSearchCondEdit}
+                            ></c-record-search-condition>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-section slds-is-open">
+                    <div class="slds-section__title slds-theme_shade">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col">
+                                <h3>
+                                    <span class="slds-truncate slds-p-horizontal_small" title={label.riskAssessmentClassi}>
+                                        {label.riskAssessmentClassi}
+                                    </span>
+                                </h3>
+                            </div>
+                            <div class="slds-col">
+                                <lightning-input type="toggle"
+                                    label=""
+                                    checked={searchCondTemp.riskAssessmentClassi.isEnabled}
+                                    message-toggle-active=""
+                                    message-toggle-inactive=""
+                                    variant="label-hidden"
+                                    onchange={handleRiskAssessClassiSearchCondEnableChange}>
+                                </lightning-input>
+                            </div>
+                        </div>
+                    </div>
+                    <div class={riskAssessmentClassiSearchCondClass}>
+                        <div class="slds-m-horizontal_medium">
+                            <div if:true={analyseTimingSelsInfo} class="slds-section slds-is-open">
+                                <div class="slds-section__title slds-theme_shade">
+                                    <div class="slds-grid slds-grid_vertical-align-center">
+                                        <div class="slds-col">
+                                            <h3>
+                                                <span class="slds-truncate slds-p-horizontal_small" title={analyseTimingSelsInfo.label}>
+                                                    {analyseTimingSelsInfo.label}
+                                                </span>
+                                            </h3>
+                                        </div>
+                                        <div class="slds-col">
+                                            <lightning-input type="toggle" label="" checked={searchCondTemp.riskAssessmentClassi.analyseTiming.isEnabled}
+                                                message-toggle-active="" message-toggle-inactive="" variant="label-hidden"
+                                                onchange={handleAnalyseTimingSearchCondEnableChange}>
+                                            </lightning-input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class={analyseTimingSearchCondClass}>
+                                    <div class="slds-m-horizontal_medium">
+                                        <lightning-dual-listbox
+                                            data-name="analyseTiming-serach-condition"
+                                            label=""
+                                            source-label={label.selectable}
+                                            selected-label={label.selected}
+                                            options={analyseTimingSelsInfo.options}
+                                            value={searchCondTemp.riskAssessmentClassi.analyseTiming.value}
+                                            variant="label-hidden"
+                                            size="3"
+                                            required
+                                            onchange={handleAnalyseTimingSearchCondChange}
+                                        ></lightning-dual-listbox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div if:true={probabilitySelsInfo} class="slds-section slds-is-open">
+                                <div class="slds-section__title slds-theme_shade">
+                                    <div class="slds-grid slds-grid_vertical-align-center">
+                                        <div class="slds-col">
+                                            <h3>
+                                                <span class="slds-truncate slds-p-horizontal_small" title={probabilitySelsInfo.label}>
+                                                    {probabilitySelsInfo.label}
+                                                </span>
+                                            </h3>
+                                        </div>
+                                        <div class="slds-col">
+                                            <lightning-input type="toggle" label="" checked={searchCondTemp.riskAssessmentClassi.probability.isEnabled}
+                                                message-toggle-active="" message-toggle-inactive="" variant="label-hidden"
+                                                onchange={handleProbabilitySearchCondEnableChange}>
+                                            </lightning-input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class={probabilitySearchCondClass}>
+                                    <div class="slds-m-horizontal_medium">
+                                        <lightning-dual-listbox
+                                            data-name="probability-serach-condition"
+                                            label=""
+                                            source-label={label.selectable}
+                                            selected-label={label.selected}
+                                            options={probabilitySelsInfo.options}
+                                            value={searchCondTemp.riskAssessmentClassi.probability.value}
+                                            variant="label-hidden"
+                                            size="3"
+                                            required
+                                            onchange={handleProbabilitySearchCondChange}
+                                        ></lightning-dual-listbox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div if:true={resultImpactSelsInfo} class="slds-section slds-is-open">
+                                <div class="slds-section__title slds-theme_shade">
+                                    <div class="slds-grid slds-grid_vertical-align-center">
+                                        <div class="slds-col">
+                                            <h3>
+                                                <span class="slds-truncate slds-p-horizontal_small" title={resultImpactSelsInfo.label}>
+                                                    {resultImpactSelsInfo.label}
+                                                </span>
+                                            </h3>
+                                        </div>
+                                        <div class="slds-col">
+                                            <lightning-input type="toggle" label="" checked={searchCondTemp.riskAssessmentClassi.resultImpact.isEnabled}
+                                                message-toggle-active="" message-toggle-inactive="" variant="label-hidden"
+                                                onchange={handleResultImpactSearchCondEnableChange}>
+                                            </lightning-input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class={resultImpactSearchCondClass}>
+                                    <div class="slds-m-horizontal_medium">
+                                        <lightning-dual-listbox
+                                            data-name="resultImpact-serach-condition"
+                                            label=""
+                                            source-label={label.selectable}
+                                            selected-label={label.selected}
+                                            options={resultImpactSelsInfo.options}
+                                            value={searchCondTemp.riskAssessmentClassi.resultImpact.value}
+                                            variant="label-hidden"
+                                            size="3"
+                                            required
+                                            onchange={handleResultImpactSearchCondChange}
+                                        ></lightning-dual-listbox>
+                                    </div>
+                                </div>
+                            </div>
+                            <div if:true={thirdEvaluationSelsInfo} class="slds-section slds-is-open">
+                                <div class="slds-section__title slds-theme_shade">
+                                    <div class="slds-grid slds-grid_vertical-align-center">
+                                        <div class="slds-col">
+                                            <h3>
+                                                <span class="slds-truncate slds-p-horizontal_small" title={thirdEvaluationSelsInfo.label}>
+                                                    {thirdEvaluationSelsInfo.label}
+                                                </span>
+                                            </h3>
+                                        </div>
+                                        <div class="slds-col">
+                                            <lightning-input type="toggle" label="" checked={searchCondTemp.riskAssessmentClassi.thirdEvaluation.isEnabled}
+                                                message-toggle-active="" message-toggle-inactive="" variant="label-hidden"
+                                                onchange={handleThirdEvaluationSearchCondEnableChange}>
+                                            </lightning-input>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class={thirdEvaluationSearchCondClass}>
+                                    <div class="slds-m-horizontal_medium">
+                                        <lightning-dual-listbox
+                                            data-name="thirdEvaluation-serach-condition"
+                                            label=""
+                                            source-label={label.selectable}
+                                            selected-label={label.selected}
+                                            options={thirdEvaluationSelsInfo.options}
+                                            value={searchCondTemp.riskAssessmentClassi.thirdEvaluation.value}
+                                            variant="label-hidden"
+                                            size="3"
+                                            required
+                                            onchange={handleThirdEvaluationSearchCondChange}
+                                        ></lightning-dual-listbox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-section slds-is-open">
+                    <div class="slds-section__title slds-theme_shade">
+                        <div class="slds-grid slds-grid_vertical-align-center">
+                            <div class="slds-col">
+                                <h3>
+                                    <span class="slds-truncate slds-p-horizontal_small" title={label.control}>
+                                        {label.control}
+                                    </span>
+                                </h3>
+                            </div>
+                            <div class="slds-col">
+                                <lightning-input type="toggle"
+                                    label=""
+                                    checked={searchCondTemp.control.isEnabled}
+                                    message-toggle-active=""
+                                    message-toggle-inactive=""
+                                    variant="label-hidden"
+                                    onchange={handleControlSearchCondEnableChange}>
+                                </lightning-input>
+                            </div>
+                        </div>
+                    </div>
+                    <div class={controlSearchCondClass}>
+                        <div class="slds-m-horizontal_medium">
+                            <c-record-search-condition
+                                data-name="control-serach-condition"
+                                object-name={controlObjectName}
+                                value={searchCondTempControl}
+                                is-search-hide="true"
+                                onedit={handleControlSearchCondEdit}
+                            ></c-record-search-condition>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label={label.cancel} class="slds-m-horizontal_xx-small"
+                    onclick={handleSearchConditionCancelClick}></lightning-button>
+                <lightning-button label={label.ok} variant="brand" class="slds-m-horizontal_xx-small"
+                    onclick={handleSearchConditionOkClick}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop" data-name="dialog-backdrop"></div>
+</template>

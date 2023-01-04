@@ -1,0 +1,183 @@
+<template>
+    <span class="slds-hide">{initializer}</span>
+    <template if:true={isInitialized}>
+        <lightning-combobox
+            if:true={isTypeBoolean}
+            data-name="input"
+            label={label}
+            value={value}
+            variant={variant}
+            placeholder=""
+            options={selectList}
+            required={required}
+            onchange={handleChange}
+        ></lightning-combobox>
+        <lightning-input
+            if:true={isTypeDecimal}
+            data-name="input"
+            type="number"
+            label={label}
+            value={value}
+            variant={variant}
+            step="any"
+            placeholder=""
+            autocomplete="off"
+            required={required}
+            onchange={handleChange}
+        ></lightning-input>
+        <lightning-input
+            if:true={isTypeCurrency}
+            data-name="input"
+            type="number"
+            label={label}
+            value={value}
+            variant={variant}
+            formatter="currency"
+            step="any"
+            placeholder=""
+            autocomplete="off"
+            required={required}
+            onchange={handleChange}
+        ></lightning-input>
+        <lightning-input
+            if:true={isTypePercent}
+            data-name="input"
+            type="number"
+            label={label}
+            value={value}
+            variant={variant}
+            formatter="percent-fixed"
+            step="any"
+            placeholder=""
+            autocomplete="off"
+            required={required}
+            onchange={handleChange}
+        ></lightning-input>
+        <lightning-input
+            if:true={isTypeDate}
+            data-name="input"
+            type="date"
+            label={label}
+            value={value}
+            variant={variant}
+            placeholder=""
+            autocomplete="off"
+            required={required}
+            onchange={handleChange}
+        ></lightning-input>
+        <lightning-input
+            if:true={isTypeTime}
+            data-name="input"
+            type="time"
+            label={label}
+            value={value}
+            variant={variant}
+            time-style="medium"
+            placeholder=""
+            autocomplete="off"
+            required={required}
+            onchange={handleChange}
+        ></lightning-input>
+        <template if:true={isTypeDatetime}>
+            <label if:true={label} class="slds-form-element__label">
+                <abbr if:true={required} class="slds-required" title="required">* </abbr>{label}
+            </label>
+            <lightning-input
+                data-name="input"
+                type="datetime"
+                label={label}
+                value={value}
+                variant="label-hidden"
+                time-style="medium"
+                placeholder=""
+                autocomplete="off"
+                required={required}
+                onchange={handleChange}
+            ></lightning-input>
+        </template>
+        <lightning-combobox
+            if:true={isTypePicklist}
+            data-name="input"
+            label={label}
+            value={value}
+            variant={variant}
+            placeholder=""
+            options={selectList}
+            required={required}
+            onchange={handleChange}
+        ></lightning-combobox>
+        <template if:true={isTypeMultiPicklist}>
+            <label if:true={label} class="slds-form-element__label">
+                <abbr if:true={required} class="slds-required" title="required">* </abbr>{label}
+            </label>
+            <lightning-dual-listbox
+                data-name="input"
+                label={label}
+                source-label=""
+                selected-label=""
+                options={selectList}
+                value={value}
+                variant="label-hidden"
+                size="3"
+                required={required}
+                onchange={handleChange}
+            ></lightning-dual-listbox>
+        </template>
+        <lightning-textarea
+            if:true={isTypeTextarea}
+            data-name="input"
+            label={label}
+            value={value}
+            variant={variant}
+            required={required}
+            onchange={handleChange}
+        ></lightning-textarea>
+        <template if:true={isTypeReference}>
+            <label if:true={label} class="slds-form-element__label">
+                <abbr if:true={required} class="slds-required" title="required">* </abbr>{label}
+            </label>
+            <div class="slds-grid">
+                <div if:true={isParentObjectSelect} class="slds-col">
+                    <lightning-combobox
+                        label=""
+                        value={parentObjectName}
+                        variant="label-hidden"
+                        placeholder=""
+                        options={parentObjectNameSels}
+                        onchange={handleParentObjectNameChange}
+                    ></lightning-combobox>
+                </div>
+                <div class="slds-col">
+                    <c-record-lookup
+                        data-name="input"
+                        object-name={parentObjectName}
+                        value={value}
+                        required={required}
+                        group-types={parentGroupTypes}
+                        record-type-object-name={objectName}
+                        onselectionchange={handleChange}
+                    ></c-record-lookup>
+                </div>
+            </div>
+        </template>
+        <lightning-input
+            if:true={isTypeOther}
+            data-name="input"
+            type="text"
+            label={label}
+            value={value}
+            variant={variant}
+            placeholder=""
+            autocomplete="off"
+            required={required}
+            onchange={handleChange}
+        ></lightning-input>
+        <template if:true={errorMessages}>
+            <div class="slds-m-around_xx-small">
+                <template for:each={errorMessages} for:item="errMsg">
+                    <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+                </template>
+            </div>
+        </template>
+    </template>
+</template>

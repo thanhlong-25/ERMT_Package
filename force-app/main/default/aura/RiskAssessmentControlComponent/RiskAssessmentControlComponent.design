@@ -1,0 +1,5 @@
+<design:component>
+    <design:attribute name="clsEvaAxisDispOrder"
+                      label="分類・評価軸の表示順（無効）"
+                      datasource="なし" />
+</design:component>

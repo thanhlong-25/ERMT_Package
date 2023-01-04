@@ -1,0 +1,11 @@
+<aura:component >
+	<aura:attribute name="checkedIds" type="Set" description="using for store checked fields"/>
+	<aura:attribute name="isChecked" type="Boolean" default="false" />
+	<aura:attribute name="recordId" type="String" />
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:registerEvent name="checkedEvent" type="c:CheckboxCheckedEvent"/>
+
+	<ui:inputCheckbox value="{!v.isChecked}" change="{!c.selectRecord}" />
+	
+</aura:component>

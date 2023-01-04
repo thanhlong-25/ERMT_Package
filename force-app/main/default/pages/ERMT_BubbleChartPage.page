@@ -1,0 +1,351 @@
+<apex:page showHeader="false" sidebar="false" standardController="Project__c" extensions="ERMT_ProjectCX">
+<html ng-app="SLDSApp">
+<head>  
+  <title></title>
+  <apex:slds />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-filter/0.5.16/angular-filter.min.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-chart.js/1.1.1/angular-chart.min.js"></script>   -->
+  <style>
+  .graph_container{
+    /*display:block;
+    width:100%;*/
+    position: relative;
+    margin: auto;
+    height: 60vh;
+    width: 100vw;
+  }
+</style>
+</head>
+<body ng-controller="MainController">
+  <!-- <div class="graph_container slds-m-top_small slds-border_bottom">
+    <div class="slds-text-heading_medium slds-m-left_medium">{{title}}</div>
+    <canvas height="300" id="base" class="chart-bubble"
+    chart-data="data" chart-series="series" chart-colors="colors" chart-options="bubble_Options" chart-click="chartOnClick">
+  </canvas> 
+</div> -->
+<div class="graph_container">
+  <canvas id="bubble-chart" width="800" height="200"></canvas>
+</div>
+<div class="slds-m-top_medium slds-align_absolute-center">
+  <label for="id_selectX"> X: </label>
+  <select id="id_selectX" class="slds-m-around_x-small" ng-init="selectedX = selectX[0]" ng-model="selectedX" ng-change="changedValueX(selectedX)" ng-options="x as x.name for x in selectX">
+  </select>
+  <label for="id_selectY"> Y: </label>
+  <select id="id_selectY" class="slds-m-around_x-small" ng-init="selectedY = selectY[1]" ng-model="selectedY" ng-change="changedValueY(selectedY)" ng-options="y as y.name for y in selectY">
+  </select>
+  <label for="id_selectGroup"> グループ: </label>
+  <select id="id_selectGroup" class="slds-m-around_x-small" ng-init="selectedGroup = selectGroup[1]" ng-model="selectedGroup" ng-change="changedValueGroup(selectedGroup)" ng-options="g as g.name for g in selectGroup">
+  </select>
+  <button class="slds-button slds-button_brand slds-m-left_medium" ng-click="refreshChart()">更新</button>
+</div>
+  <script>
+  var app = angular.module("SLDSApp",['angular.filter']);
+app.controller('MainController', function($scope,$filter) {
+
+  $scope.labelData = [];
+  $scope.xData = [];
+  $scope.yData = [];
+  $scope.zData = [];
+  $scope.sizeData = [];
+    //$scope.colorData = ['rgba(51, 102, 204, 0.6)','rgba(220, 57, 18, 0.6)','rgba(255, 153, 0,0.6)','rgba(16, 150, 24, 0.6)','rgba(153, 0, 153, 0.6)','#3B3EAC','#0099C6','#DD4477','#66AA00','#B82E2E','#316395','#994499','#22AA99','#AAAA11','#6633CC','#E67300','#8B0707','#329262','#5574A6','#651067'];
+  $scope.colorData = ['RGBA(203,68,68,0.6)','RGBA(222,109,60,0.6)','RGBA(208,135,0,0.6)','RGBA(199,169,9,0.6)','RGBA(167,167,6,0.6)','RGBA(118,157,27,0.6)','RGBA(40,150,105,0.6)','RGBA(0,122,139,0.6)'];
+  $scope.selectX = [{id:"ermt__NumberConsequence__c",name:"結果の重大(影響)度",data:$scope.xData},{id:"ermt__NumberLikelihood__c",name:"起こりやすさ(発生可能性）",data:$scope.yData},{id:"ermt__NumberSeverityRiskLevel__c",name:"リスク重要度(リスクレベル)",data:$scope.zData}];
+
+  $scope.selectY = [{id:"ermt__NumberConsequence__c",name:"結果の重大(影響)度",data:$scope.xData},{id:"ermt__NumberLikelihood__c",name:"起こりやすさ(発生可能性）",data:$scope.yData},{id:"ermt__NumberSeverityRiskLevel__c",name:"リスク重要度(リスクレベル)",data:$scope.zData}];
+
+  $scope.selectGroup = [{id:"None",name:"なし"},{id:"ermt__Organization__r.Type",name:"組織・場所"},{id:"ermt__RiskCategory__c",name:"リスク分類"}];
+
+  $scope.dataForChart = {
+    datasets:[]
+  };
+  
+  Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getRiskOfProject}','{!Project__c.Id}', function(result, event) {
+    if(event.status){
+      Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_ProjectCX.getAverageRisk}','{!Project__c.Id}','なし', function(result2, event2) {
+        console.log('averange data', result2);
+        if(event2.status){
+          $scope.riskData = _.intersectionWith(_.cloneDeep(result), result2, function(x, y) {
+                  return x.Id === y.ermt__Risk__c && _.assign(x, y);
+                });
+          // console.log($scope.riskData);
+          $scope.refreshChart();
+        }
+      });
+    }
+  });
+
+  $scope.refreshChart = function() {
+    if($scope.selectedX.id != $scope.selectedY.id && $scope.riskData){
+      $scope.xData.length = 0;
+      $scope.yData.length = 0;
+      $scope.zData.length = 0;
+      $scope.sizeData.length = 0;
+      $scope.labelData.length = 0;
+
+      if($scope.selectedGroup.id == "None"){
+        angular.forEach($scope.riskData, function(value, key) {
+          $scope.xData.push(_.ceil(value.avgImpact,2));
+          $scope.yData.push(_.ceil(value.avgLike,2));
+          $scope.zData.push(_.ceil(value.avgSeverity,2));
+          var sizeScale = ($scope.bubble_chart.width / 24) * (value.avgSeverity/5000000);
+          $scope.sizeData.push(_.ceil(value.avgSeverity,2)*10);
+          $scope.labelData.push(value.Name);
+        });
+      }
+      else{
+        console.log('riskData' , $scope.riskData);
+        var abc = $filter('groupBy')($scope.riskData, $scope.selectedGroup.id);
+        console.log(abc);
+        angular.forEach(abc, function(value, key) {
+          $scope.xData.push($scope.getAverage(value,'avgImpact'));
+          $scope.yData.push($scope.getAverage(value,'avgLike'));
+          $scope.zData.push($scope.getAverage(value,'avgSeverity'));
+          var sizeScale = ($scope.bubble_chart.width / 24) * ($scope.getAverage(value,'avgSeverity')/5000000);
+          $scope.sizeData.push($scope.getAverage(value,'avgSeverity')*10);
+          $scope.labelData.push(key);
+        });
+      }
+      // console.log($scope.xData);
+      // console.log($scope.yData);
+      // console.log($scope.sizeData);
+      // console.log($scope.labelData);
+      // console.log($scope.selectX);
+      // console.log($scope.selectY);
+
+      $scope.dataForChart.datasets = [];
+      var indexcolor = 0;
+      for (var i = 0; i < $scope.labelData.length; i++) {
+        indexcolor = indexcolor<$scope.colorData.length?indexcolor:0;
+        var a = {
+          label: $scope.labelData[i],
+          backgroundColor: $scope.colorData[indexcolor],
+          data: [{
+            // label: 'x',
+            x: $scope.selectedX.data[i],
+            y: $scope.selectedY.data[i],
+            r: $scope.sizeData[i]
+          }]
+        }
+        $scope.dataForChart.datasets.push(a);
+        indexcolor++;
+      }
+      // console.log($scope.dataForChart.datasets);
+      $scope.bubble_chart.config.options.scales.xAxes = [];
+      var scaleLabelX = {
+        ticks: {
+            min: 0,
+            max: 5.0,
+            stepSize: 1
+          },
+        scaleLabel: {
+          display: true,
+          labelString: $scope.selectedX.name
+        }
+      };
+      $scope.bubble_chart.config.options.scales.xAxes.push(scaleLabelX);
+
+      $scope.bubble_chart.config.options.scales.yAxes = [];
+      var scaleLabelY = {
+        ticks: {
+            min: 0,
+            max: 5.0,
+            stepSize: 1
+          },
+        scaleLabel: {
+          display: true,
+          labelString: $scope.selectedY.name
+        }
+      };
+      $scope.bubble_chart.config.options.scales.yAxes.push(scaleLabelY);
+
+      $scope.bubble_chart.update();
+    }
+    else{
+      alert("同じ値を選択しないでください。");
+    }
+  }
+
+  $scope.getAverage = function(items, keyAverage) {
+    return _.ceil(items
+    .map(function(x) { return x[keyAverage]?x[keyAverage]:0; })
+    .reduce(function(a, b) { return a + b; })/items.length,2);
+  };
+
+
+
+  // $scope.labelData = ["China","Denmark","Germany","Japan"];
+  // $scope.xData = [21269017,258702,3979083,4931877];
+  // $scope.yData = [5.245,7.526,6.994,5.921];
+  // $scope.pData = [1000, 10, 34, 85];
+  // $scope.sizeData = [15,10,15,15];
+  // $scope.colorData = ["rgba(255,221,50,0.2)","rgba(60,186,159,0.2)","rgba(0,0,0,0.2)","rgba(193,46,12,0.2)"];
+  // $scope.dataForChart = {
+  //   datasets:[]
+  // };
+
+  // $scope.selectX = [{id:0,name:"結果の重大(影響)度",data:$scope.xData},{id:1,name:"起こりやすさ(発生可能性）",data:$scope.yData}];
+
+  // $scope.selectY = [{id:0,name:"GDP (PPP)",data:$scope.xData},{id:1,name:"起こりやすさ(発生可能性）",data:$scope.yData},{id:2,name:"結果の重大(影響)度",data:$scope.pData}];
+
+  // $scope.refreshChart = function() {
+  //   if($scope.selectedX.id != $scope.selectedY.id){
+  //       $scope.dataForChart.datasets = [];
+  //       for (var i = 0; i < $scope.labelData.length; i++) {
+  //         var a = {
+  //           label: $scope.labelData[i],
+  //           backgroundColor: $scope.colorData[i],
+  //           data: [{
+  //             x: $scope.selectedX.data[i],
+  //             y: $scope.selectedY.data[i],
+  //             r: $scope.sizeData[i]
+  //           }]
+  //         }
+  //         $scope.dataForChart.datasets.push(a);
+  //       }
+
+  //       $scope.bubble_chart.config.options.scales.xAxes = [];
+  //       var scaleLabelX = {
+  //         scaleLabel: {
+  //           display: true,
+  //           labelString: $scope.selectedX.name
+  //         }
+  //       };
+  //       $scope.bubble_chart.config.options.scales.xAxes.push(scaleLabelX);
+
+  //       $scope.bubble_chart.config.options.scales.yAxes = [];
+  //       var scaleLabelY = {
+  //         scaleLabel: {
+  //           display: true,
+  //           labelString: $scope.selectedY.name
+  //         }
+  //       };
+  //       $scope.bubble_chart.config.options.scales.yAxes.push(scaleLabelY);
+
+  //       $scope.bubble_chart.update();
+  //   }
+  //   else{
+  //     alert("Please don't choose same value");
+  //   }
+  // }
+  
+  // $scope.dataForChart = {
+  //     datasets: [
+  //     {
+  //       label: ["China"],
+  //       backgroundColor: "rgba(255,221,50,0.2)",
+  //       data: [{
+  //         x: 21269017,
+  //         y: 5.245,
+  //         r: 15
+  //       }]
+  //     }, {
+  //       label: ["Denmark"],
+  //       backgroundColor: "rgba(60,186,159,0.2)",
+  //       data: [{
+  //         x: 258702,
+  //         y: 7.526,
+  //         r: 10
+  //       }]
+  //     }, {
+  //       label: ["Germany"],
+  //       backgroundColor: "rgba(0,0,0,0.2)",
+  //       data: [{
+  //         x: 3979083,
+  //         y: 6.994,
+  //         r: 15
+  //       }]
+  //     }, {
+  //       label: ["Japan"],
+  //       backgroundColor: "rgba(193,46,12,0.2)",
+  //       data: [{
+  //         x: 4931877,
+  //         y: 5.921,
+  //         r: 15
+  //       }]
+  //     }
+  //     ]
+  //   };
+  $scope.bubble_chart = new Chart(document.getElementById("bubble-chart"), {
+    type: 'bubble',
+    data: $scope.dataForChart,
+    options: {
+      maintainAspectRatio:false,
+      title: {
+        display: true,
+        text: ''
+      },
+      tooltips: {
+       enabled: false
+      },
+      onClick: function(e) {
+         var ci = this.chart;
+         var element = ci.getElementAtEvent(e)[0];
+         if(element){
+           var index = element._datasetIndex;
+           toggleClickChart(index, ci);
+         }
+      },
+      legend: {
+          position: 'right',
+        onClick: function(e, legendItem) {
+          var index = legendItem.datasetIndex;
+          var ci = this.chart;
+          toggleClickChart(index, ci);
+        },
+      },
+      plugins: {
+          datalabels: {
+            anchor: 'center',
+            align: 'center',
+            color: 'black',
+            font: {
+              weight: 'bold'
+            },
+            textAlign:'center',
+            formatter: function(value, context) {
+              // console.log(context);
+              var tooltip = context.dataset.label+'\n (x:'+context.dataset.data[0].x+', y:'+context.dataset.data[0].y+', r:'+_.floor(context.dataset.data[0].r/10,2)+')';
+              return context.active ? tooltip : context.dataset.label;
+            },
+            display: function(context) {
+              return context.dataset.data[0].r >= 10;
+            },
+            offset: 2,
+            padding: 0
+          }
+        }
+    }
+  });
+
+  function toggleClickChart(index, ci){
+    var alreadyHidden = (ci.getDatasetMeta(index).hidden === null) ? false : ci.getDatasetMeta(index).hidden;
+
+    ci.data.datasets.forEach(function(e, i) {
+      var meta = ci.getDatasetMeta(i);
+
+      if (i !== index) {
+        if (!alreadyHidden) {
+          meta.hidden = meta.hidden === null ? !meta.hidden : null;
+        } else if (meta.hidden === null) {
+          meta.hidden = true;
+        }
+      } else if (i === index) {
+        meta.hidden = null;
+      }
+    });
+
+    ci.update();
+  }
+
+
+});
+  
+
+</script>
+</body>
+</html>
+</apex:page>

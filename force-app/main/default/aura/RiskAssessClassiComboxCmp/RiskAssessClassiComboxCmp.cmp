@@ -1,0 +1,12 @@
+<aura:component controller="ERMT_RiskAssessCC">
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:method name="sampleMethod" action="{!c.doAction}"> 
+		<aura:attribute name="riskAssessIdFromNew" type="String"/> 
+	</aura:method>
+    <aura:attribute name="record" type="Object" required="true"/>
+    <aura:attribute name="riskAssessId" type="String" required="true"/>
+    <aura:attribute name="options" type="List" default="[]"/>
+    <aura:attribute name="isNewRecord" type="Boolean" default="false"/>
+    <aura:attribute name="disabled" type="Boolean" default="false"/>
+    <lightning:combobox name="general" label="{! !empty(v.record.ermt__Label_Pick__c) ? v.record.ermt__Label_Pick__c : v.record.ermt__Label__c }" placeholder="Select an Option" options="{! v.options }" value="{!v.record.selected}" onchange="{! c.handleChange }" fieldLevelHelp="{! !empty(v.record.ermt__Help_Text_Pick__c) ? v.record.ermt__Help_Text_Pick__c : v.record.ermt__Help_Text__c }" disabled="{! v.disabled}"/>
+</aura:component>

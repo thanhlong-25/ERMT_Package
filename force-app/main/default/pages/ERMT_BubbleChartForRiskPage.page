@@ -1,0 +1,342 @@
+<apex:page showHeader="false" sidebar="false" standardController="Risk__c" extensions="ERMT_BubbleChartForRiskCX" docType="html-5.0">
+<html ng-app="SLDSApp">
+<head>  
+  <title></title>
+  <apex:slds />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.min.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-filter/0.5.16/angular-filter.min.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <style>
+  .graph_container{
+    position: relative;
+    margin: auto;
+    height: 80vh; 
+    width: 90vw; 
+  }
+  .graph_footer{
+    position: relative;
+    margin: auto;
+    width: 80vw;
+  }
+</style>
+</head>
+<body ng-controller="MainController">
+<div class="graph_container">
+  <canvas id="bubble-chart" width="800" height="200"></canvas>
+</div>
+<div class="graph_footer">
+  <div class="slds-m-top_medium slds-align_absolute-center slds-m-right_xx-large">
+    <label for="id_selectX"> X: </label>
+    <select style="width: 9vw" id="id_selectX" class="slds-m-around_x-small" ng-init="selectedX = selectX[0]" ng-model="selectedX" ng-change="changedValueX(selectedX)" ng-options="x as x.ermt__M_Classification__r.ermt__Label_Pick__c for x in selectX">
+    </select>
+    <label for="id_selectY"> Y: </label>
+    <select style="width: 9vw" id="id_selectY" class="slds-m-around_x-small" ng-init="selectedY = selectY[1]" ng-model="selectedY" ng-change="changedValueY(selectedY)" ng-options="y as y.ermt__M_Classification__r.ermt__Label_Pick__c for y in selectY">
+    </select>
+    <button class="slds-button slds-button_brand slds-m-left_medium" ng-click="getRiskAndAverage(true)">{!$Label.Action_Reload}</button>
+  </div>
+</div>
+
+  <script>
+    var app = angular.module("SLDSApp",['angular.filter']);
+    app.controller('MainController', function($scope,$filter) {
+
+    $scope.labelData = [];
+    $scope.selectedXData = [];
+    $scope.selectedYData = [];
+    $scope.selectedZData = [];
+    $scope.classifcationWithMaxViewNo = {};
+    $scope.sizeData = [];
+    $scope.isEvaluationChange = false;
+    $scope.selectedValuation = {label:"なし" , value: "なし"};
+    $scope.colorData = ['RGBA(203,68,68,0.6)','RGBA(222,109,60,0.6)','RGBA(208,135,0,0.6)','RGBA(199,169,9,0.6)','RGBA(167,167,6,0.6)','RGBA(118,157,27,0.6)','RGBA(40,150,105,0.6)','RGBA(0,122,139,0.6)'];
+
+    $scope.dataForChart = {
+      datasets:[]
+    };
+
+    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_BubbleChartForRiskCX.getProjectClassifications}','{!JSENCODE(HTMLENCODE(Risk__c.Project__c))}', function(res, event) {
+  
+    var result = res.juncs;
+    $scope.comboboxGroup = result;
+    for(var i = 0 ; i < result.length ; i++){
+      if(!result[i].ermt__M_Classification__r.ermt__Label_Pick__c){
+        result[i].ermt__M_Classification__r.ermt__Label_Pick__c = 
+          result[i].ermt__M_Classification__r.ermt__Label__c ? 
+          result[i].ermt__M_Classification__r.ermt__Label__c :  
+          result[i].ermt__M_Classification__r.RecordType.DeveloperName;
+      }
+    }
+    $scope.selectX = result;
+    $scope.selectY = result;
+    $scope.selectedX = result[0];
+    $scope.selectedY = result[1];
+    $scope.classifcationWithMaxViewNo = res.mapClassificationWithMaxNo;
+    $scope.$apply();
+  });
+    
+  $scope.getRiskAndAverage = function(isLoadChart){
+    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.ERMT_BubbleChartForRiskCX.getAverageRiskAssessment}','{!Risk__c.Id}', function(result, event) {
+      if(event.status){
+        result = result.replaceAll("&", '');
+        result = result.replaceAll("quot;", '"');
+        result = result.replace(/\n/g, '');
+        result = JSON.parse(result);
+        result.map(item => {
+          if(item.ermt__Label_Pick__c == '' || item.ermt__Label_Pick__c == undefined || item.ermt__Label_Pick__c == null){
+            item.ermt__Label_Pick__c = item.ermt__Label__c;
+          }
+          return item;
+        })
+        $scope.riskData = result;
+        console.log(result);
+        $scope.refreshChart();
+      }
+    });
+  }
+  $scope.getRiskAndAverage(true);
+
+  $scope.refreshChart = function(){
+    if ($scope.selectedX.Id != $scope.selectedY.Id){
+      var datas = $scope.riskData;
+      var xName = $scope.selectedX.ermt__M_Classification__r.RecordType.DeveloperName;
+      var yName = $scope.selectedY.ermt__M_Classification__r.RecordType.DeveloperName;
+      var listParents = [];
+      var listChilds = [];
+      var mapSeveritys = {};
+      for (var i in datas){
+        if (datas[i].DeveloperName == "EvaluationPeriodGroup") {
+          listParents.push(datas[i]);
+        } else {
+          listChilds.push(datas[i]);
+        }
+        if (datas[i].DeveloperName == "SeverityRiskLevelGroup") {
+          if (mapSeveritys[datas[i].ermt__RiskAssessment__c]) {
+            var x = mapSeveritys[datas[i].ermt__RiskAssessment__c]; 
+            x.push(datas[i]);
+            mapSeveritys[datas[i].ermt__RiskAssessment__c] = x;
+          } else {
+            mapSeveritys[datas[i].ermt__RiskAssessment__c] = [datas[i]];
+          }
+        }
+      }
+
+      listParents = _.sortBy(listParents, [function(o) { return o.point; }]);
+      var groups = _(listParents).groupBy(function (item) {
+        return item.ermt__M_Classification__c;
+      }).value();
+      var listBubble = [];
+      for (var i in groups){
+        var b = {};
+        var point = 0;
+        var points = mapSeveritys[groups[i][0].ermt__RiskAssessment__c];
+        
+        for (var j = 0; j < points.length; j++){
+          point = point + points[j].point;
+        }
+        
+        var ermt__M_Classification__c = '';
+        var DeveloperName = '';
+        var ermt__Label_Pick__c = '';
+        var listAssessments = [];
+
+        var its = groups[i];
+        for (var j = 0; j < its.length; j++){
+          // point = point + its[j].point;
+          ermt__M_Classification__c = its[j].ermt__M_Classification__c;
+          DeveloperName = its[j].DeveloperName;
+          ermt__Label_Pick__c = its[j].ermt__Label_Pick__c;
+          listAssessments.push(its[j].ermt__RiskAssessment__c);
+        }
+        b.ermt__M_Classification__c = ermt__M_Classification__c;
+        b.DeveloperName = DeveloperName;
+        b.ermt__Label_Pick__c = ermt__Label_Pick__c;
+        b.listAssessments = listAssessments;
+        b.point = Math.round(point/(its.length) * 100) / 100;
+        listBubble.push(b);
+      }
+      
+      var listData = [];
+      for (var i=0; i < listBubble.length; i++) {
+        var parent = listBubble[i];
+        var item = {};
+        var avgX = 0;
+        var avgY = 0;
+        var avgRadius = 0;
+        var totalX = 0;
+        var totalY = 0;
+        var totalRadius = 0;
+        var listXs = [];
+        var listYs = [];
+        var listRadius = [];
+        var listAssessments = parent.listAssessments;
+        for (var k=0; k<listAssessments.length; k++){
+          var ermt__RiskAssessment__c = listAssessments[k];
+          for (var j=0; j < listChilds.length; j++){
+            var child = listChilds[j];
+            if (child.ermt__RiskAssessment__c == ermt__RiskAssessment__c){
+              if (child.DeveloperName == xName){
+                listXs.push(child);
+                totalX = totalX + child.point;
+              } else if (child.DeveloperName == yName){
+                listYs.push(child);
+                totalY = totalY + child.point;
+              } else {
+                listRadius.push(child);
+                totalRadius = totalRadius + child.point;
+              }
+            }
+          }
+        }
+        if (listXs.length > 0){
+          avgX = Math.round(totalX/(listXs.length) * 100) / 100;
+        }
+        if (listYs.length > 0){
+          avgY = Math.round(totalY/(listYs.length) * 100) / 100;
+        }
+        if (listRadius.length > 0){
+          avgRadius = Math.round(totalRadius/(listRadius.length) * 100) / 100;
+        }
+        item.DeveloperName = parent.DeveloperName;
+        item.label = parent.ermt__Label_Pick__c;
+        item.ermt__M_Classification__c = parent.ermt__M_Classification__c;
+        item.z = avgRadius;
+        item.x = avgX;
+        item.y = avgY;
+        item.dataX = listXs;
+        item.dataY = listYs;
+        listData.push(item);
+      }
+      $scope.riskData = listData;
+
+      $scope.dataForChart.datasets = [];
+      var indexcolor = 0;
+      for (var i = 0; i < $scope.riskData.length; i++) {
+        indexcolor = indexcolor<$scope.colorData.length?indexcolor:0;
+        var a = {
+          label: $scope.riskData[i].label,
+          backgroundColor: $scope.colorData[indexcolor],
+          data: [{
+            x: $scope.riskData[i].x,
+            y: $scope.riskData[i].y,
+            r: $scope.riskData[i].z*10
+          }]
+        }
+        $scope.dataForChart.datasets.push(a);
+        indexcolor++;
+      }
+      // console.log($scope.dataForChart);
+      $scope.bubble_chart.config.options.scales.xAxes = [];
+      var scaleLabelX = {
+        ticks: {
+            min: 0,
+            max: $scope.classifcationWithMaxViewNo[$scope.selectedX.ermt__M_Classification__c] != undefined ? $scope.classifcationWithMaxViewNo[$scope.selectedX.ermt__M_Classification__c] : 5.0,
+            stepSize: 1
+          },
+          scaleLabel: {
+          display: true,
+          labelString: $scope.selectedX.ermt__M_Classification__r.ermt__Label_Pick__c
+          }
+      };
+      $scope.bubble_chart.config.options.scales.xAxes.push(scaleLabelX);
+
+      $scope.bubble_chart.config.options.scales.yAxes = [];
+      var scaleLabelY = {
+        ticks: {
+            min: 0,
+            max: $scope.classifcationWithMaxViewNo[$scope.selectedY.ermt__M_Classification__c] != undefined ? $scope.classifcationWithMaxViewNo[$scope.selectedY.ermt__M_Classification__c] : 5.0,
+            stepSize: 1
+          },
+        scaleLabel: {
+          display: true,
+          labelString: $scope.selectedY.ermt__M_Classification__r.ermt__Label_Pick__c
+        }
+      };
+      $scope.bubble_chart.config.options.scales.yAxes.push(scaleLabelY);
+
+      $scope.bubble_chart.update();
+
+    } else{
+      alert("同じ値を選択しないでください。");
+    }
+ }
+
+  // Chart
+  $scope.bubble_chart = new Chart(document.getElementById("bubble-chart"), {
+    type: 'bubble',
+    data: $scope.dataForChart,
+    options: {
+      maintainAspectRatio:false,
+      title: {
+        display: true,
+        text: ''
+      },
+      tooltips: {
+       enabled: false
+      },
+      onClick: function(e) {
+         var ci = this.chart;
+         var element = ci.getElementAtEvent(e)[0];
+         if(element){
+           var index = element._datasetIndex;
+           toggleClickChart(index, ci);
+         }
+      },
+      legend: {
+          position: 'right',
+        onClick: function(e, legendItem) {
+          var index = legendItem.datasetIndex;
+          var ci = this.chart;
+          toggleClickChart(index, ci);
+        },
+      },
+      plugins: {
+          datalabels: {
+            anchor: 'center',
+            align: 'center',
+            color: 'black',
+            font: {
+              weight: 'bold'
+            },
+            textAlign:'center',
+            formatter: function(value, context) {
+              var tooltip = context.dataset.label+'\n (x:'+context.dataset.data[0].x+', y:'+context.dataset.data[0].y+', r:'+_.floor(context.dataset.data[0].r/10,2)+')';
+              return context.active ? tooltip : context.dataset.label;
+            },
+            display: function(context) {
+              return context.dataset.data[0].r >= 10;
+            },
+            offset: 2,
+            padding: 0
+          }
+        }
+    }
+  });
+
+  function toggleClickChart(index, ci){
+    var alreadyHidden = (ci.getDatasetMeta(index).hidden === null) ? false : ci.getDatasetMeta(index).hidden;
+
+    ci.data.datasets.forEach(function(e, i) {
+      var meta = ci.getDatasetMeta(i);
+
+      if (i !== index) {
+        if (!alreadyHidden) {
+          meta.hidden = meta.hidden === null ? !meta.hidden : null;
+        } else if (meta.hidden === null) {
+          meta.hidden = true;
+        }
+      } else if (i === index) {
+        meta.hidden = null;
+      }
+    });
+
+    ci.update();
+  }
+});
+  
+
+</script>
+</body>
+</html>
+</apex:page>

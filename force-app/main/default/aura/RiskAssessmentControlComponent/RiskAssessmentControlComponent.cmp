@@ -1,0 +1,31 @@
+<aura:component controller="ERMT_RiskAssessControlCC" implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	
+	<aura:attribute name="listEvaluations" type="Object[]" default="[]"/>
+	<aura:attribute name="currentTab" type="String" default=""/>
+	<aura:attribute name="hasEditPermission" type="Boolean" default="false"/>
+    <aura:attribute name="canConfirm" type="Boolean" default="false"/>
+    <aura:attribute name="canCopy" type="Boolean" default="false"/>
+    <aura:attribute name="clsEvaAxisDispOrder" type="String" default="" access="global"/>
+    
+	<div class="slds">
+        <div class="slds-tabs_scoped">
+            <ul class="slds-tabs_scoped__nav">
+                <aura:iteration items="{!v.listEvaluations}" indexVar="index" var="item">
+                    <li id="{!'li' + item.classId}" onclick="{!c.clickOnTab}" class="{! v.currentTab == item.label ? 'slds-tabs_scoped__item slds-is-active' : 'slds-tabs_scoped__item'}" title="{! item.label}" role="presentation"><a class="slds-tabs_scoped__link" href="javascript:void(0);" style="    text-decoration: none;" role="tab" tabindex="{! v.currentTab == item.label ? 0 : -1}" id="{!'tab__' + item.classId}">{!item.label}</a></li>
+                </aura:iteration>
+            </ul>
+            <aura:iteration items="{!v.listEvaluations}" indexVar="index" var="item">
+                <div id="{! 'tabData__' + item.classId}" class="{! v.currentTab == item.label ? 'slds-tabs_scoped__content slds-show' : 'slds-tabs_scoped__content slds-hide'}" role="tabpanel">
+                    <aura:if isTrue="{! !empty(item.childs)}"> 
+                        <aura:iteration items="{! item.childs}" var="child">
+                            <div class="slds-box slds-m-top_x-small">
+                                <c:RiskAssessmentControlItemComponent hasEditPermission="{! v.hasEditPermission}" riskId="{!v.recordId}" assessId="{!child.assessId}" canConfirm="{!v.canConfirm}" canCopy="{!v.canCopy}" />
+                            </div>
+                        </aura:iteration>
+                    </aura:if>
+                </div>
+            </aura:iteration>
+        </div>
+	</div>
+</aura:component>

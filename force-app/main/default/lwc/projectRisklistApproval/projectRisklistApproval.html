@@ -1,0 +1,332 @@
+<template>
+    <lightning-card icon-name="custom:custom75"
+        class="main"
+    >
+    <lightning-spinner if:true={isProcessing} alternative-text="Processing" variant="brand"></lightning-spinner>
+    <div slot="title">
+        <span class="title">{label.title}</span>
+        <!-- <span class="title">リスク一覧承認</span> -->
+    </div>
+    <div slot="actions">
+        <lightning-button-group>
+            <lightning-button-icon icon-name="utility:table_settings"
+                alternative-text={label.displayFieldsSetting} title={label.displayFieldsSetting}
+                onclick={handleDisplayFieldsSettingClick}></lightning-button-icon>
+        </lightning-button-group>
+    </div>
+    <div class="">
+        <div if:true={errorMessages}
+            class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+            <lightning-icon icon-name="utility:error" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+            <h2>
+                <template for:each={errorMessages} for:item="errMsg">
+                    <p key={errMsg}>{errMsg}</p>
+                </template>
+            </h2>
+            <div class="slds-notify__close">
+                <button class="slds-button slds-button_icon slds-button_icon-small slds-button_icon-inverse"
+                    onclick={handleErrorAlertCloseClick}>
+                    <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                </button>
+            </div>
+        </div>
+        <div class="slds-grid slds-gutters_x-small slds-m-horizontal_small slds-m-top_small">
+            <div class="slds-col slds-grow-none">
+                <div class="slds-text-body_regular">
+                    {pageInfo.resultSize}{label.list_number}
+                </div>
+            </div>
+            <div class="slds-col slds-grow-none">
+                <div class="slds-text-body_regular">
+                    {pageInfo.pageNumber}/{pageInfo.lastPageNumber}{label.list_page}
+                </div>
+            </div>
+            <div class="slds-col slds-grow-none">
+                <div class="slds-text-body_regular">
+                    <a if:true={isFirstPageEnable}
+                        href="javascript:void(0);"
+                        data-name="first-page"
+                        onclick={handlePageMoveClick}>{label.list_first}</a>
+                    <span if:false={isFirstPageEnable} class="slds-text-color_weak">{label.list_first}</span>
+                </div>
+            </div>
+            <div class="slds-col slds-grow-none">
+                <div class="slds-text-body_regular">
+                    <a if:true={isPreviousPageEnable}
+                        href="javascript:void(0);"
+                        data-name="previous-page"
+                        onclick={handlePageMoveClick}>{label.list_previous}</a>
+                    <span if:false={isPreviousPageEnable} class="slds-text-color_weak">{label.list_previous}</span>
+                </div>
+            </div>
+            <div class="slds-col slds-grow-none">
+                <div class="slds-text-body_regular">
+                    <a if:true={isNextPageEnable}
+                        href="javascript:void(0);"
+                        data-name="next-page"
+                        onclick={handlePageMoveClick}>{label.list_next}</a>
+                    <span if:false={isNextPageEnable} class="slds-text-color_weak">{label.list_next}</span>
+                </div>
+            </div>
+            <div class="slds-col slds-grow-none">
+                <div class="slds-text-body_regular">
+                    <a if:true={isLastPageEnable}
+                        href="javascript:void(0);"
+                        data-name="last-page"
+                        onclick={handlePageMoveClick}>{label.list_last}</a>
+                    <span if:false={isLastPageEnable} class="slds-text-color_weak">{label.list_last}</span>
+                </div>
+            </div>
+        </div>
+        <div class="slds-m-horizontal_small slds-m-bottom_small slds-scrollable slds-is-relative" style={risklistWrapStyle}
+                onmousemove={handleColumnWidthMousemove}
+                onmouseup={handleColumnWidthMouseup}
+                onscroll={handleRisklistWrapScroll}
+        >
+            <!-- 固定見出し（上） -->
+            <div class="slds-is-absolute fixedHeaderTop" style={fixedHeaderTop.style}>
+                <table class="slds-table slds-no-row-hover slds-table_resizable-cols risklist">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <th rowspan="2" class="" scope="col">
+                                <div class="recordNo header"></div>
+                            </th>
+                            <th class="" scope="col" rowspan="2" >
+                                <div class="recordNo header slds-text-align_center"><input type="checkbox" onclick={handleClickAll} name="checkAll"/></div>
+                            </th>
+                            <template if:true={header1} for:each={header1} for:item="cell">
+                                <th key={cell} colspan={cell.colspan} class="" scope="col">
+                                    <div class="slds-truncate header1-item" title={cell.text}>{cell.text}</div>
+                                </th>
+                            </template>
+                        </tr>
+                        <tr class="slds-line-height_reset">
+                            
+                            <template if:true={header2} for:each={header2} for:item="cell">
+                                <th key={cell} class={cell.cellClass} scope="col">
+                                    <a class="slds-th__action slds-text-link_reset" href="javascript:void(0);" role="button" tabindex="0"
+                                        data-col={cell.col}
+                                        onclick={handleColumnSortClick}>
+                                        <span class="slds-assistive-text">Sort by: </span>
+                                        <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate col-width"
+                                            style={cell.colWidthStyle}>
+                                            <div class="slds-truncate" title={cell.text}>{cell.text}</div>
+                                            <span class="slds-icon_container slds-icon-utility-arrowdown">
+                                                <svg class="slds-icon slds-icon-text-default slds-is-sortable__icon" aria-hidden="true">
+                                                    <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#arrowdown"></use>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                    </a>
+                                    <div class="slds-resizable">
+                                        <input type="range" aria-label="" class="slds-resizable__input slds-assistive-text"
+                                            max="1000" min="20" tabindex="0" />
+                                        <span class="slds-resizable__handle"
+                                            data-col={cell.col}
+                                            onmousedown={handleColumnWidthMousedown}>
+                                            <span class="slds-resizable__divider"></span>
+                                        </span>
+                                    </div>
+                                </th>
+                            </template>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            <!-- 本体 -->
+            <table class="slds-table slds-no-row-hover slds-table_resizable-cols risklist">
+                <thead style="visibility:hidden;">
+                    <tr class="slds-line-height_reset">
+                        <th rowspan="2" class="" scope="col">
+                            <div class="recordNo header"></div>
+                        </th>
+                        <th class="" scope="col" rowspan="2" >
+                            <div class="recordNo header"></div>
+                        </th>
+                        <template if:true={header1} for:each={header1} for:item="cell">
+                            <th key={cell} colspan={cell.colspan} class="" scope="col">
+                                <div class="slds-truncate header1-item" title={cell.text}>{cell.text}</div>
+                            </th>
+                        </template>
+                    </tr>
+                    <tr class="slds-line-height_reset">
+                        
+                        <template if:true={header2} for:each={header2} for:item="cell">
+                            <th key={cell} class={cell.cellClass} scope="col">
+                                <a class="slds-th__action slds-text-link_reset" href="javascript:void(0);" role="button" tabindex="0"
+                                    data-col={cell.col}
+                                    onclick={handleColumnSortClick}>
+                                    <span class="slds-assistive-text">Sort by: </span>
+                                    <div class="slds-grid slds-grid_vertical-align-center slds-has-flexi-truncate col-width"
+                                        style={cell.colWidthStyle}>
+                                        <div class="slds-truncate" title={cell.text}>{cell.text}</div>
+                                        <span class="slds-icon_container slds-icon-utility-arrowdown">
+                                            <svg class="slds-icon slds-icon-text-default slds-is-sortable__icon" aria-hidden="true">
+                                                <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#arrowdown"></use>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                </a>
+                                <div class="slds-resizable">
+                                    <input type="range" aria-label="" class="slds-resizable__input slds-assistive-text"
+                                        max="1000" min="20" tabindex="0" />
+                                    <span class="slds-resizable__handle"
+                                        data-col={cell.col}
+                                        onmousedown={handleColumnWidthMousedown}>
+                                        <span class="slds-resizable__divider"></span>
+                                    </span>
+                                </div>
+                            </th>
+                        </template>
+                    </tr>
+                </thead>
+                <tbody>
+                    <template if:true={detail} for:each={detail} for:item="record">
+                        <tr key={record} class={record.rowClass}>
+                            <td>
+                                <div class="recordNo">
+                                    <div class="slds-truncate slds-text-align_center" title={record.no}>
+                                        {record.no}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="recordNo">
+                                    <div class="slds-truncate slds-text-align_center">
+                                        <input type="checkbox" name="approval-checkboxes" onclick={updateCheckbox} value={record.riskId}/>
+                                    </div>
+                                </div>
+                            </td>
+                            <template for:each={record.cells} for:item="cell">
+                                <td key={cell} rowspan={cell.rowspan} class={cell.item.cellClass}>
+                                    <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center" style={cell.colWidthStyle}>
+                                        <span class="slds-truncate" title={cell.item.text}>
+                                            <span if:false={cell.item.url}>
+                                                {cell.item.text}
+                                            </span>
+                                            <a if:true={cell.item.url} href={cell.item.url} target="_blank">
+                                                {cell.item.text}
+                                            </a>
+                                        </span>
+                                    </div>
+                                </td>
+                            </template>
+                            
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div slot="footer">
+        <lightning-button label="申請" variant="brand" class="slds-m-horizontal_x-small"
+            onclick={handleEditSaveClick} disabled={isExecuteDisabled}></lightning-button>
+    </div>
+    <section  role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-hide" data-name="display-fields-setting-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleDisplayFieldsSettingCancelClick}></lightning-button>
+                <div class="slds-text-title">{label.title}</div>
+                <h2 class="slds-modal__title slds-hyphenate">{label.displayFieldsSetting}</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium" style="height: 300px;">
+                <div class="slds-m-bottom_small">
+                    <lightning-dual-listbox
+                        label={label.risk}
+                        source-label={label.selectable}
+                        selected-label={label.selected}
+                        options={riskDisplayFieldNameSels}
+                        value={dispFieldNameTemp.risk}
+                        size="3"
+                        required
+                        onchange={handleRiskDisplayFieldNameChange}></lightning-dual-listbox>
+                </div>
+                <div class="slds-m-bottom_small">
+                    <lightning-dual-listbox
+                        label={label.riskAssessment}
+                        source-label={label.selectable}
+                        selected-label={label.selected}
+                        options={riskAssessmentDisplayFieldNameSels}
+                        value={dispFieldNameTemp.riskAssessment}
+                        size="3"
+                        required
+                        onchange={handleRiskAssessmentDisplayFieldNameChange}></lightning-dual-listbox>
+                </div>
+                <div class="slds-m-bottom_small">
+                    <lightning-dual-listbox
+                        label={label.riskClassi}
+                        source-label={label.selectable}
+                        selected-label={label.selected}
+                        options={riskClassiGroupSels}
+                        value={riskClassiDefault}
+                        size="6"
+                        onchange={changeRiskClassiGroupSels}
+                    ></lightning-dual-listbox>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label={label.cancel} class="slds-m-horizontal_xx-small"
+                    onclick={handleDisplayFieldsSettingCancelClick}></lightning-button>
+                <lightning-button label={label.ok} variant="brand" class="slds-m-horizontal_xx-small"
+                    onclick={handleDisplayFieldsSettingOkClick}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-hide" data-name="display-comment-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleCancelApproval}></lightning-button>
+                <div class="slds-text-title">リスク一覧承認</div>
+                <h2 class="slds-modal__title slds-hyphenate">コメント</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">
+                <div class="slds-grid slds-gutters slds-grid_align-center slds-grid_vertical-align-center">
+                    <div class="slds-col slds-size_1-of-1 slds-is-relative" style="margin-bottom: -15px;">
+                        コメント
+                        <lightning-textarea
+                            class="comment"
+                            style="margin-top: -15px;"
+                            onchange={handleCommentChange}
+                        ></lightning-textarea>
+                    </div>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label="キャンセル" class="slds-m-horizontal_xx-small"
+                    onclick={handleCancelApproval}></lightning-button>
+                <lightning-button label="申請" variant="brand" class="slds-m-horizontal_xx-small"
+                    onclick={handleConfirmPopup}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-hide" data-name="display-submit-confirm-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleCancelConfirmApproval}></lightning-button>
+                <h2 class="slds-modal__title slds-hyphenate">{label.approvalSubmit_title}</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">
+                <div class="slds-grid slds-gutters slds-grid_align-center slds-grid_vertical-align-center">
+                    <div class="slds-col slds-size_1-of-1 slds-is-relative" style="margin-bottom: -15px;text-align:center;">
+                        {label.approvalSubmit_submit_confirm_1}<br/><br/>
+                        {label.approvalSubmit_submit_list_count}：{checklist_count}<br/>
+                    </div>
+                </div>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label="キャンセル" class="slds-m-horizontal_xx-small"
+                    onclick={handleCancelConfirmApproval}></lightning-button>
+                <lightning-button label="実行" variant="brand" class="slds-m-horizontal_xx-small"
+                    onclick={handleApproval}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop" data-name="dialog-backdrop"></div>
+    </lightning-card>
+</template>

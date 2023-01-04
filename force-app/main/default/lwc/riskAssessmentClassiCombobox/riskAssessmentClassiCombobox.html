@@ -1,0 +1,23 @@
+<template>
+    <span class="slds-hide">{initializer}</span>
+    <template if:true={isInitialized}>
+        <lightning-combobox
+            if:true={classiSelsInfo}
+            data-name="input"
+            label={classiSelsInfo.label}
+            value={value}
+            variant={variant}
+            placeholder=""
+            options={classiSelsInfo.options}
+            required={required}
+            onchange={handleChange}
+        ></lightning-combobox>
+        <template if:true={errorMessages}>
+            <div class="slds-m-around_xx-small">
+                <template for:each={errorMessages} for:item="errMsg">
+                    <p key={errMsg} class="slds-text-color_error">{errMsg}</p>
+                </template>
+            </div>
+        </template>
+    </template>
+</template>

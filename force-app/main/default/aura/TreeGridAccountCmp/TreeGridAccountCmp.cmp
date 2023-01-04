@@ -1,0 +1,30 @@
+<aura:component controller="ERMT_ProjectCC" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <ltng:require scripts="{!$Resource.lodash}"/>
+    <aura:attribute name="gridColumns" type="List" />
+    <aura:attribute name="gridData" type="Object" />
+    <aura:attribute name="gridDataOrigin" type="Object" />
+    <aura:attribute name="resultsExpanded" type="List" />
+    <aura:attribute name="titleLabel" type="String" default="対象組織・部門" description="Title of Component" access="global"/>
+    <aura:attribute name="gridSelectedRows" type="List" />
+    <aura:attribute name="gridSelectedRowsOrigin" type="List" />
+    <aura:attribute name="gridExpandedRows" type="List" />
+    <aura:attribute name="prjField" type="Project__c"/>
+    <aura:attribute name="isDisable" type="Boolean" default="true" />
+    <force:recordData
+        recordId="{!v.recordId}"
+        targetFields="{!v.prjField}"
+        recordUpdated="{! c.handleRecordChanged }"
+        fields="RecordType.DeveloperName"/>
+    <div class="slds-box slds-theme_default">
+    	<div class="slds-text-heading_small">{!v.titleLabel}</div>
+    	<lightning:treeGrid columns="{! v.gridColumns }"
+    		data="{! v.gridData }"
+    		keyField="Id"
+    		aura:id="mytree" 
+            selectedRows="{! v.gridSelectedRows }"
+            expandedRows="{! v.gridExpandedRows }"
+    		onrowselection="{!c.handleSelect}"
+            ontoggle="{! c.handleRowToggle }"
+    		/>
+    	</div>
+</aura:component>

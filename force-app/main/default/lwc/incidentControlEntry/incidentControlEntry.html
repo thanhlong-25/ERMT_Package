@@ -1,0 +1,268 @@
+<template>
+    <lightning-card class="slds-is-relative">
+        <div class="slds-var-p-around_small">
+            <template if:true={isProcessing}>
+                <lightning-spinner variant="brand"></lightning-spinner>
+            </template>
+            <template if:true={errorMessages}>
+                <template for:each={errorMessages} for:item="errMsg">
+                    <div key={errMsg} class="slds-text-color_error">{errMsg}</div>
+                </template>
+            </template>
+            <lightning-tabset active-tab-value={activeTabValue}>
+                <lightning-tab label={labelInfo.incidentControlEntry} value="incidentControlEntry" onactive={handleTabActive}>
+                    <div class="slds-var-p-around_small">
+                        <div class="slds-text-title_bold">
+                            {incidentLabel}
+                        </div>
+                        <div class="slds-grid slds-gutters slds-var-p-left_medium">
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">{incidentNameLabel}</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{incident.Name}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_3-of-4">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">{incidentTitleLabel}</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{incident.ermt__Title__c}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-text-title_bold slds-var-m-top_x-small">
+                            {controlLabel}
+                        </div>
+                        <div class="slds-var-p-left_medium">
+                            <lightning-accordion allow-multiple-sections-open
+                                onsectiontoggle={handleControlSearchCondSectionToggle}
+                                active-section-name={controlSearchCondActiveSections}
+                            >
+                                <lightning-accordion-section name="searchCond" label={labelInfo.searchCond}>
+                                    <div class="slds-border_top slds-border_bottom">
+                                        <c-record-search-condition
+                                            object-name={controlObjectName}
+                                            select-field-names={controlSearchFieldNames}
+                                            onsearch={handleControlSearchAsync}
+                                            oncancel={handleControlSearchCancel}
+                                        ></c-record-search-condition>
+                                    </div>
+                                </lightning-accordion-section>
+                            </lightning-accordion>
+                            <div class="slds-grid slds-grid_vertical-align-end slds-var-m-bottom_xx-small">
+                                <div class="slds-col">
+                                    <lightning-radio-group
+                                        type="button"
+                                        label=""
+                                        variant="label-hidden"
+                                        options={registerTypeOptions} value={registerType}
+                                        onchange={handleRegisterTypeChangeAsync}
+                                    ></lightning-radio-group>
+                                </div>
+                                <div class="slds-col_bump-left">
+                                    <div class="slds-grid slds-gutters_x-small">
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                {controlPageInfo.resultSize}{labelInfo.number}
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                {controlPageInfo.pageNumber}/{controlPageInfo.lastPageNumber}{labelInfo.page}
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isControlFirstPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="control-first-page"
+                                                    onclick={handleControlPageMoveClick}
+                                                >{labelInfo.first}</a>
+                                                <span if:false={isControlFirstPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.first}</span>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isControlPreviousPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="control-previous-page"
+                                                    onclick={handleControlPageMoveClick}
+                                                >{labelInfo.previous}</a>
+                                                <span if:false={isControlPreviousPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.previous}</span>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isControlNextPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="control-next-page"
+                                                    onclick={handleControlPageMoveClick}
+                                                >{labelInfo.next}</a>
+                                                <span if:false={isControlNextPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.next}</span>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-grow-none">
+                                            <div class="slds-text-body_regular">
+                                                <a if:true={isControlLastPageEnable}
+                                                    href="javascript:void(0);"
+                                                    data-name="control-last-page"
+                                                    onclick={handleControlPageMoveClick}
+                                                >{labelInfo.last}</a>
+                                                <span if:false={isControlLastPageEnable}
+                                                    class="slds-text-color_weak"
+                                                >{labelInfo.last}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <!-- sldsValidatorIgnoreNextLine -->
+                                <lightning-datatable
+                                    data-name="controlTable"
+                                    key-field="key"
+                                    show-row-number-column="true"
+                                    row-number-offset={controlPageInfo.rowNumberOffset}
+                                    columns={controlColumns}
+                                    data={controlDataRows}
+                                    default-sort-direction={controlDefaultSortDirection}
+                                    sorted-direction={controlSortDirection}
+                                    sorted-by={controlSortedBy}
+                                    onsort={handleControlSort}
+                                    onrowselection={handleControlRowSelection}
+                                ></lightning-datatable>
+                            </div>
+                        </div>
+                        <div class="slds-align_absolute-center slds-border_top slds-var-p-around_small">
+                            <lightning-button
+                                class="slds-var-m-right_x-small"
+                                label={labelInfo.entry}
+                                icon-name="utility:new"
+                                variant="brand"
+                                disabled={isEntryDisabled}
+                                onclick={handleEntryClick}
+                            ></lightning-button>
+                            <lightning-button
+                                class="slds-var-m-right_x-small"
+                                label={labelInfo.delete}
+                                icon-name="utility:clear"
+                                variant="brand"
+                                disabled={isDeleteDisabled}
+                                onclick={handleDeleteClick}
+                            ></lightning-button>
+                            <lightning-button
+                                label={labelInfo.close}
+                                icon-name="utility:close"
+                                onclick={handleCloseClick}
+                            ></lightning-button>
+                        </div>
+                    </div>
+                </lightning-tab>
+                <lightning-tab label={labelInfo.controlNewCreate} value="controlNewCreate" onactive={handleTabActive}>
+                    <div class="slds-var-p-around_small">
+                        <lightning-record-edit-form
+                            if:true={controlCreateLayout}
+                            object-api-name={controlObjectName}
+                            record-type-id={controlRecordTypeId}
+                            onsubmit={handleControlNewSubmit}
+                            onsuccess={handleControlNewSuccessAsync}
+                            onerror={handleControlNewError}
+                        >
+                            <lightning-messages> </lightning-messages>
+                            <template for:each={controlCreateLayout} for:item="section">
+                                <div key={section} class="slds-section slds-is-open">
+                                    <h3 if:true={section.heading} class="slds-section__title slds-theme_shade">
+                                        <span class="slds-truncate slds-var-p-horizontal_small">{section.heading}</span>
+                                    </h3>
+                                    <div class="slds-section__content">
+                                        <template for:each={section.rows} for:item="row">
+                                            <div key={row} class="slds-grid">
+                                                <template for:each={row.items} for:item="item">
+                                                    <div key={item} class={section.columnClass}>
+                                                        <lightning-input-field
+                                                            if:true={item.name}
+                                                            class={item.class}
+                                                            field-name={item.name}
+                                                            value={item.value}
+                                                            required={item.required}
+                                                            disabled={item.disabled}
+                                                        ></lightning-input-field>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                            <div class="slds-align_absolute-center slds-border_top slds-var-p-around_small">
+                                <lightning-button
+                                    class="slds-var-m-right_x-small"
+                                    type="submit"
+                                    label={labelInfo.save}
+                                    icon-name="utility:new"
+                                    variant="brand"
+                                ></lightning-button>
+                                <lightning-button
+                                    label={labelInfo.close}
+                                    icon-name="utility:close"
+                                    onclick={handleCloseClick}
+                                ></lightning-button>
+                            </div>
+                        </lightning-record-edit-form>
+                    </div>
+                </lightning-tab>
+            </lightning-tabset>
+        </div>
+    </lightning-card>
+    <!-- 登録確認ダイアログ -->
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal" data-name="entry-confirm-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleEntryCancelClick}></lightning-button>
+                <h2 class="slds-modal__title slds-hyphenate">{labelInfo.entry}</h2>
+            </header>
+            <div class="slds-modal__content slds-var-p-around_medium slds-text-align_center">
+                <p>{labelInfo.incidentControlEntryConfirm}</p>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label={labelInfo.cancel} class="slds-var-m-horizontal_xx-small"
+                    onclick={handleEntryCancelClick}></lightning-button>
+                <lightning-button label={labelInfo.ok} variant="brand" class="slds-var-m-horizontal_xx-small"
+                    onclick={handleEntryOkClickAsync}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <!-- 削除確認ダイアログ -->
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal" data-name="delete-confirm-dialog">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <lightning-button icon-name="utility:close" variant="base"
+                    class="slds-modal__close slds-button_icon-inverse"
+                    onclick={handleDeleteCancelClick}></lightning-button>
+                <h2 class="slds-modal__title slds-hyphenate">{labelInfo.delete}</h2>
+            </header>
+            <div class="slds-modal__content slds-var-p-around_medium slds-text-align_center">
+                <p>{labelInfo.incidentControlDeleteConfirm}</p>
+            </div>
+            <footer class="slds-modal__footer">
+                <lightning-button label={labelInfo.cancel} class="slds-var-m-horizontal_xx-small"
+                    onclick={handleDeleteCancelClick}></lightning-button>
+                <lightning-button label={labelInfo.ok} variant="brand" class="slds-var-m-horizontal_xx-small"
+                    onclick={handleDeleteOkClickAsync}></lightning-button>
+            </footer>
+        </div>
+    </section>
+    <!-- ダイアログのバックドロップ -->
+    <div class="slds-backdrop" data-name="dialog-backdrop"></div>
+</template>

@@ -1,0 +1,23 @@
+.searching-spinner-wrap {
+    position: absolute;
+    right: 3rem;
+    top: 0;
+    bottom: 0;
+}
+.slds-dropdown-trigger_click.is-open .slds-dropdown {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+}
+.searchCondition {
+    position: absolute;
+    z-index: 7000;
+    top: 100%;
+    width: 100%;
+}
+.classiListbox {
+    z-index: 6999;
+}
+.classiDatatableWrap {
+    width: 99%;
+}

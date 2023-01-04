@@ -1,0 +1,123 @@
+<aura:component controller="CustomRelatedListCC">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="record" type="Object" required="true"/>
+    <aura:attribute name="riskAssess" type="RiskAssessment__c"/>
+    <aura:attribute name="showFields" type="Object[]" description="using for store display fields" required="true"/>
+    <aura:attribute name="displaySize" type="integer" default="4" description="quantity of fields will be displayed clone from quantity" />
+    <aura:attribute name="quantity" type="integer" default="4" description="quantity of fields will be displayed" />
+    <aura:attribute name="isShowViewAll" default="false" type="Boolean"/>
+    <aura:attribute name="isShowHide" default="false" type="Boolean"/>
+    <aura:attribute name="isRiskDetail" default="false" type="Boolean"/>
+    <aura:attribute name="isSameRecordType" default="false" type="Boolean"/> 
+    <aura:attribute name="isActive" default="false" type="Boolean"/>    
+    <aura:attribute name="hideSpinner" default="false" type="Boolean"/>
+    <aura:attribute name="newRecordRecordTypeId" type="String"/>
+    <aura:attribute name="showModule" type="boolean" default="false"/>   
+    <aura:attribute name="fieldsLayout" type="List" description="List of input field api names to be rendered on the new record risk assessment form" default="[]"/>
+    <aura:attribute name="newRAssessIdAfterSuccess" type="String"/>
+    <lightning:overlayLibrary aura:id="overlayLib"/>
+    <aura:attribute name="parent" type="Aura.Component" required="true"/>
+    <!-- <aura:handler event="aura:waiting" action="{!c.waiting}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.doneWaiting}"/> -->
+    <force:recordData aura:id="recordUpdater" 
+                  layoutType="FULL"
+                  recordId="{!v.record.Id}"
+                  targetFields="{!v.riskAssess}"
+                  mode="EDIT"
+                  recordUpdated="{!c.recordUpdated}"/>
+    <div class="{!(and(v.isActive, v.isSameRecordType) ? 'slds-theme_default' : 'slds-theme_shade') + ' slds-box slds-m-around_xx-small'}">
+    	<aura:if isTrue="{!!empty(v.showFields)}">
+            <div class="slds-m-around_xx-small slds-clearfix">
+                <aura:if isTrue="{!v.isSameRecordType}">  
+                    <aura:if isTrue="{!v.isActive}">
+                        <lightning:button onclick="{!c.editRecord}" label="編集"/>
+                        <aura:if isTrue="{!v.record.RecordType.DeveloperName == 'Analysis'}">
+                            <!-- <lightning:button variant="brand" class="slds-float_right" onclick="{!c.newRecord}" label="評価する"/> -->
+                            <lightning:button variant="brand" class="slds-float_right" onclick="{!c.showNewPopup}" label="評価する" title="評価する" />
+                        </aura:if>
+                        <aura:set attribute="else">
+                            <lightning:button variant="brand" class="slds-float_right" onclick="{!c.enableRecord}" label="有効化"/>
+                        </aura:set>
+                    </aura:if>
+                </aura:if>
+            </div>
+            <lightning:recordViewForm class="slds-grid slds-wrap" recordId="{!v.record.Id}" objectApiName="ermt__RiskAssessment__c">
+                <aura:iteration items="{!v.showFields}" var="field" indexVar="index">
+                    <div class="{!(index >= v.displaySize ? 'slds-hide' : 'slds-show') + ' slds-size_1-of-2 slds-max-small-size_1-of-1'}">
+                        <lightning:outputField fieldName="{!field.objName}" />
+                    </div>
+                </aura:iteration>
+            </lightning:recordViewForm>
+            <aura:if isTrue="{!v.isShowViewAll}">
+                <div class="slds-grid slds-grid_align-center">
+                    <div class="slds-col">
+                        <a onclick="{!c.showAllField}">すべての項目を表示</a>
+                    </div>
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!v.isShowHide}">
+                <div class="slds-grid slds-grid_align-center">
+                    <div class="slds-col">
+                        <a onclick="{!c.hideField}">非表示</a>
+                    </div>
+                </div>
+            </aura:if>
+    	</aura:if>
+        <aura:if isTrue="{!v.hideSpinner}">
+            <div class="slds-spinner_container" >
+                <div class="slds-spinner--brand slds-spinner slds-spinner--large" role="alert">
+                    <span class="slds-assistive-text">Loading, Please Wait...</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+        <aura:if isTrue="{!v.record.RecordType.DeveloperName != 'Evaluation'}">
+            <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" recordTypeName="EvaluationPeriodGroup" />
+            <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" recordTypeName="LikelihoodGroup" />
+            <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" recordTypeName="ConsequenceGroup" />
+            <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" recordTypeName="SeverityRiskLevelGroup" />            
+        </aura:if>
+    </div>
+     <aura:if isTrue="{!v.showModule}">
+        <div class="demo-only" style="height: 300px;">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="modal-container slds-modal__container">
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" variant="bare-inverse" size="large" onclick="{! c.hideNewPopup }" alternativeText="Close" class="slds-modal__close" />
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">リスクアセスメント新規作成</h2>
+                    </header>
+
+                        <div class="modal-body scrollable slds-modal__content slds-p-around--medium">
+                            <aura:if isTrue="{!!empty(v.fieldsLayout)}"> 
+                                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                                        <lightning:recordEditForm
+                                            onload="{!c.handleLoad}"
+                                            onsuccess="{!c.handleSuccess}"
+                                            objectApiName="ermt__RiskAssessment__c"
+                                            aura:id="newRiskForm">
+                                            <lightning:messages />
+                                            <aura:iteration items="{!v.fieldsLayout}" var="fLayout">
+                                                <lightning:inputField fieldName="{!fLayout}" aura:id="preField"/>
+                                            </aura:iteration>
+                                            <lightning:inputField fieldName="RecordTypeId" class="slds-hide" aura:id="rTypeField"/>
+                                        </lightning:recordEditForm>
+                                        <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" isNewRecord="true" recordTypeName="EvaluationPeriodGroup" aura:id="cmpEva"/>
+                                        <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" isNewRecord="true" recordTypeName="LikelihoodGroup" aura:id="cmpLike"/>
+                                        <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" isNewRecord="true" recordTypeName="ConsequenceGroup" aura:id="cmpCons"/>
+                                        <c:RiskAssessClassificationCmp riskAssessId="{!v.record.Id}" isNewRecord="true" recordTypeName="SeverityRiskLevelGroup" aura:id="cmpSever"/>
+                                </div>
+                                <div></div>
+                            </aura:if> 
+                        </div>
+                        <div class="modal-footer slds-modal__footer">
+                            <button class="slds-button slds-button_neutral" title="Cancel" onclick="{! c.hideNewPopup }">Cancel</button>
+                            <lightning:button variant="brand" name="save" label="Save" onclick="{! c.handleSave }"/>
+                        </div>
+                    
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+    </aura:if>   
+</aura:component>

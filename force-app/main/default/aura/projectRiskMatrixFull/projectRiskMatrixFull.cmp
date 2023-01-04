@@ -1,0 +1,5 @@
+<aura:component implements="lightning:isUrlAddressable,force:appHostable" >
+	<aura:attribute name="id" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.init}"/>
+    <c:projectRiskMatrix recordId="{!v.id}" isFullWindowMode="true" />
+</aura:component>

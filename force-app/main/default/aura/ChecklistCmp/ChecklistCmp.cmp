@@ -1,0 +1,28 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId"  access="global" controller="ERMT_QuestionCC">
+
+	<ltng:require scripts="{!$Resource.lodash}" afterScriptsLoaded="{!c.doInit}"/>
+	
+	<aura:attribute name="categories" type="List" default="[]" />
+	<aura:attribute name="answers" type="List" default="[]"/>
+
+	<aura:attribute name="disable" type="boolean" default="true"/>
+	<aura:attribute name="hasPermission" type="boolean" default="false"/>
+	
+	<aura:handler event="c:RefreshChecklistEvent" action="{!c.refreshChecklist}"/>
+	
+	<div>
+		<div class="slds-tabs_card">
+			<div class="slds-tabs_default">
+				<div>
+					<aura:if  isTrue="{! !empty(v.categories)}">
+						<aura:iteration items="{!v.categories}" var="category">
+
+							<c:CategoryCmp hasPermission="{!v.hasPermission}" disable="{!v.disable}" checklistId="{!v.recordId}" answers="{!v.answers}" category="{!category}"/>
+
+						</aura:iteration>
+					</aura:if>
+	            </div>
+			</div>
+		</div>
+	</div>
+</aura:component>

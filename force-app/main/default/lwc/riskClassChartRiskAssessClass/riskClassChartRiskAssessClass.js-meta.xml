@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>52.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>リスク分類チャート（リスクアセスメント分類軸）</masterLabel>
+    <targets>
+        <target>lightning__AppPage</target>
+        <target>lightning__HomePage</target>
+        <target>lightning__Tab</target>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property label="チャートの高さ" name="chartHeight" type="Integer" min="1" default="400"
+                description="ピクセル単位の数値で指定します。" />
+            <property label="チャート凡例の高さ" name="chartLegendHeight" type="Integer" min="1" default="100"
+                description="ピクセル単位の数値で指定します。" />
+            <objects>
+                <object>ermt__Project__c</object>
+            </objects>
+        </targetConfig>
+        <targetConfig targets="lightning__AppPage,lightning__HomePage">
+            <property label="チャートの高さ" name="chartHeight" type="Integer" min="1" default="300"
+                description="ピクセル単位の数値で指定します。" />
+            <property label="チャート凡例の高さ" name="chartLegendHeight" type="Integer" min="1" default="100"
+                description="ピクセル単位の数値で指定します。" />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

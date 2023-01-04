@@ -1,0 +1,106 @@
+<aura:component controller="ERMT_RiskAssessControlCC" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="riskId" type="String" default=""/>
+    <aura:attribute name="assessId" type="String" default=""/>
+    <aura:attribute name="riskAssess" type="RiskAssessment__c"/>
+    <aura:attribute name="hasEditPermission" default="false" type="Boolean"/>
+    <aura:attribute name="probabilityOrderNo" type="Integer" access="private" default="1"/>
+    <aura:attribute name="resultImpactOrderNo" type="Integer" access="private" default="2"/>
+    <aura:attribute name="thirdEvaluationOrderNo" type="Integer" access="private" default="3"/>
+    <aura:attribute name="canConfirm" default="false" type="Boolean"/>
+    <aura:attribute name="canCopy" default="false" type="Boolean"/>
+    <aura:attribute name="isCopyDialogOpen" default="false" type="Boolean"/>
+
+    <force:recordData aura:id="recordAssess" 
+        layoutType="FULL"
+        recordId="{!v.assessId}"
+        targetFields="{!v.riskAssess}"
+        fields="RecordType.DeveloperName"/>
+        
+    <!-- combobox classification -->
+	<div class="slds-grid slds-grid_vertical slds-m-bottom_x-small">
+        <div class="{!'slds-col slds-order_' + v.probabilityOrderNo}">
+            <c:RiskAssessClassificationCmp checkPermission="false" hasEditPermission="{! v.hasEditPermission}" riskAssessId="{!v.assessId}" recordTypeName="LikelihoodGroup" />
+        </div>
+        <div class="{!'slds-col slds-order_' + v.resultImpactOrderNo}">
+            <c:RiskAssessClassificationCmp checkPermission="false" hasEditPermission="{! v.hasEditPermission}" riskAssessId="{!v.assessId}" recordTypeName="ConsequenceGroup" />
+        </div>
+        <div class="{!'slds-col slds-order_' + v.thirdEvaluationOrderNo}">
+            <c:RiskAssessClassificationCmp checkPermission="false" hasEditPermission="{! v.hasEditPermission}" riskAssessId="{!v.assessId}" recordTypeName="SeverityRiskLevelGroup" />
+        </div>
+	</div>
+
+    <!-- define button-->
+    <div class="slds-grid slds-gutters">
+        <div class="slds-col slds-size_1-of-2">
+            <!-- edit button-->
+            <aura:if isTrue="{! v.riskAssess.RecordType.DeveloperName == 'Analysis'}">
+                <lightning:button onclick="{!c.editRecord}" label="{!$Label.c.RiskAssessmentControlItemComponent_Edit}"/>
+                <aura:set attribute="else">
+                    <aura:if isTrue="{! and(v.hasEditPermission, v.riskAssess.ermt__isActive__c) }">
+                        <lightning:button onclick="{!c.editRecord}" label="{!$Label.c.RiskAssessmentControlItemComponent_Edit}"/>
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+            <aura:if isTrue="{!v.canCopy}">
+                <lightning:button onclick="{!c.handleCopyClick}" label="{!$Label.c.RiskAssessmentControlItemComponent_Copy}" />
+            </aura:if>
+        </div>
+        <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+            <aura:if isTrue="{! and(v.riskAssess.RecordType.DeveloperName == 'Analysis', v.canConfirm)}">
+                <lightning:button variant="brand" onclick="{!c.changeRecordType}" label="{!$Label.c.RiskAssessmentControlItemComponent_Confirm}" />
+            </aura:if>
+        </div>
+    </div>
+    <div class="slds-m-top_x-small">
+        <!-- <div>＜現状＞</div> -->
+        <force:recordView recordId="{!v.assessId}" />
+        <!-- <br/>
+        <div>＜案１．全項目を編集モードで表示＞</div>
+        <force:recordEdit aura:id="edit" recordId="{!v.assessId}"/>
+        <div class="slds-grid slds-grid_align-center">
+            <div class="slds-col">
+                <lightning:button variant="brand" label="保存" />
+            </div>
+        </div>
+        <div class="slds-grid slds-grid_align-center">
+            <div class="slds-col">
+                ※サンプルのため、上記の保存ボタンは押しても保存されません。
+            </div>
+        </div>
+        <br/>
+        <div>＜案２．標準コンポーネントを使用＞</div>
+        <lightning:recordForm
+            recordId="{!v.assessId}"
+            objectApiName="ermt__RiskAssessment__c"
+            layoutType="Full"
+            mode="view"
+            columns="2"
+        /> -->
+    </div>
+
+    <aura:if isTrue="{!v.isCopyDialogOpen}">
+        <section role="dialog" tabindex="-1" aria-modal="true"
+            class="{!'slds-modal' + (v.isCopyDialogOpen ? ' slds-fade-in-open' : '')}"
+        >
+            <div class="slds-modal__container">
+                <header class="slds-modal__header slds-modal__header_empty">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                        onclick="{!c.handleCopyCloseClick}"
+                    >
+                        <lightning:icon iconName="utility:close" size="small" variant="inverse" />
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <c:riskAnalysisNewCreate
+                        recordId="{!v.riskId}"
+                        copySourceRiskAssessId="{!v.assessId}"
+                        onclose="{!c.handleCopyCloseClick}"
+                    />
+                </div>
+            </div>
+        </section>
+        <div class="{!'slds-backdrop' + (v.isCopyDialogOpen ? ' slds-backdrop_open' : '')}"></div>
+    </aura:if>
+</aura:component>

@@ -1,0 +1,31 @@
+<aura:component controller="ERMT_RiskCC" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:attribute name="titleValue" type="String" default="" access="global"/>
+	<aura:attribute name="records" type="Object[]"/>
+	<aura:attribute name="riskField" type="Risk__c"/>
+	<force:recordData
+		recordId="{!v.recordId}"
+		targetFields="{!v.riskField}"
+		recordUpdated="{! c.handleRecordChanged }"
+		fields="ermt__Project__c,RecordType.DeveloperName"/>
+		
+		<aura:if isTrue="{!!empty(v.records)}">
+			<div class="slds-box slds-theme_default slds-p-bottom_none">
+				<aura:if isTrue="{! v.titleValue != ''}">
+					<div class="slds-m-bottom_small slds-text-heading_small"><b>{! v.titleValue} </b></div>
+				</aura:if>
+				<aura:if isTrue="{!v.riskField.RecordType.DeveloperName == 'ClassifiedRisk'}">
+					<aura:iteration items="{!v.records}" var="record">
+						<aura:if isTrue="{! not(empty(record.values))}">
+							<c:RiskClassificationBadgeCmp record="{!record}"/>
+						</aura:if>
+					</aura:iteration>
+					<aura:set attribute="else">
+						<aura:iteration items="{!v.records}" var="record">
+							<c:RiskClassificationDualListBoxCmp record="{!record}" riskId="{!v.recordId}" />
+						</aura:iteration>
+					</aura:set>
+				</aura:if>
+			</div>
+	</aura:if>
+</aura:component>

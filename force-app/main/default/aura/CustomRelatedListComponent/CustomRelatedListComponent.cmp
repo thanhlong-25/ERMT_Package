@@ -1,0 +1,122 @@
+<aura:component controller="CustomRelatedListCC" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" >
+  <aura:registerEvent name="LoadMyEvent" type="c:PassVariable"/>
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+  
+  <aura:attribute name="records" type="Object[]"/>
+  <aura:attribute name="objectIcon" type="String" default="ermt__Risk__c" description="using for store selected object"/>
+  <aura:attribute name="recordId" type="Id" />
+  <aura:attribute name="showFields" type="Object[]" description="using for store display fields"/>
+  <aura:attribute name="page" type="integer" default="1"  description="using for store page Number"/>
+  <aura:attribute name="pages" type="integer" description="using for store All Pages page Number"/>
+  <aura:attribute name="total" type="integer" description="total records count store "/>
+  <aura:attribute name="pageSize" type="integer" default="4" description="default page size records store" access="global"/>
+  <aura:attribute name="objLabel" type="String" description="label of related list"/>
+  <!-- show action or not -->
+  <div class="slds">
+    <article class="slds-card">
+      <div class="slds-card__header slds-grid">
+        <header class="slds-media slds-media_center slds-has-flexi-truncate">
+          <div class="slds-media__figure">
+            <lightning:icon iconName="{!'custom:'+v.objectIcon}" size="small"/>
+          </div>
+          <div class="slds-media__body">
+            <p class="slds-page-header__title slds-truncate">{!v.objLabel}({!v.total})</p>
+          </div>
+        </header>
+        <div class="slds-no-flex">
+          <ui:button press="{!c.newRecord}" label="New"/>
+        </div>
+      </div>
+      <div class="slds-card__body slds-card__body_inner">
+       <table class="slds-table slds-table_bordered slds-table_resizable-cols slds-table_fixed-layout">
+        <thead>
+          <tr class="slds-line-height_reset">
+            <aura:iteration items="{!v.showFields}" var="field">
+              <th aria-sort="none" class="slds-is-resizable slds-text-title_caps" aria-label="{!field.objLabel}" scope="col" id="{!field.objLabel}">
+                <span class="slds-truncate" title="{!field.objLabel}">{!field.objLabel}</span>
+                <div class="slds-resizable">
+                  <input type="range" min="20" max="1000" aria-label="{!field.objLabel + ' column width'}" class="slds-resizable__input slds-assistive-text" id="cell-resize-handle-8" tabindex="-1" />
+                  <span class="slds-resizable__handle">
+                    <span class="slds-resizable__divider"></span>
+                  </span>
+                </div>
+              </th>  
+            </aura:iteration> <!-- loop fields header  -->
+          </tr>
+        </thead>    
+        <tbody>
+          <aura:if isTrue="{!!empty(v.records)}"> 
+           <aura:iteration items="{!v.records}" var="record" indexVar="index">
+            <tr class="slds-hint-parent"> 
+              <aura:if isTrue="{!!empty(v.showFields)}"> 
+                <aura:iteration items="{!v.showFields}" var="field">
+                  <td scope="row" data-label="{!field}">
+                    <div class="slds-truncate">
+                      <aura:if isTrue="{!field.objName == 'Name'}">
+                        <a onclick="{!c.loadRightPanel}" id="{!record.Id}"><c:GetDynamicDataComponent record="{!record}" field="{!field.objName}" fieldType="{!field.fieldType}"/></a>
+                      </aura:if>
+                      <aura:if isTrue="{!field.isRelationship}">  
+                             <a onclick="{!c.gotoDetail}" data-index="{!index}" data-fieldname="{!field.objName}"><c:GetDynamicDataComponent record="{!record}" field="{!field.objName}" fieldType="{!field.fieldType}"/></a>
+                        </aura:if>
+                      <aura:if isTrue="{!and(field.objName != 'Name',!field.isRelationship)}">
+                        <c:GetDynamicDataComponent record="{!record}" field="{!field.objName}" fieldType="{!field.fieldType}"/>
+                      </aura:if>
+                    </div>
+                  </td> 
+                </aura:iteration> <!-- loop fields data-->
+              </aura:if>
+            </tr>
+          </aura:iteration> <!-- loop records -->
+        </aura:if> <!-- if records is empty -->
+      </tbody>        
+    </table> <!-- table display record -->
+    <!-- PAGING -->
+    <div id="dpaging" class="slds-p-around--small">
+      <div class="slds-form--inline slds-m-vertical--x-small">                      
+        <div class="slds-form-element">
+          <ul class="slds-list--horizontal">
+            <aura:if isTrue="{!v.page==1}">                              
+              <li onclick="{!c.firstPage}" class="slds-button--neutral lipaging disabled" id="firstPage" title="First Page" >
+                <a href="">&lt;&lt;</a>
+              </li>
+              <li onclick="{!c.previousPage}" class="slds-button--neutral lipaging disabled" title="Previous Page" id="previousPage">
+                <a href="">&lt;</a>
+              </li>                     
+              <aura:set attribute="else">
+                <li onclick="{!c.firstPage}" class="slds-button--neutral lipaging " id="firstPage" title="First Page" >
+                  <a href="">&lt;&lt;</a>
+                </li>
+                <li onclick="{!c.previousPage}" class="slds-button--neutral lipaging " title="Previous Page" id="previousPage">
+                  <a href="">&lt;</a>
+                </li> 
+              </aura:set>
+            </aura:if>
+            <aura:if isTrue="{!v.page==v.pages}">
+              <li onclick="{!c.nextPage}" class="slds-button--neutral lipaging disabled" title="Next Page" id="nextPage">
+                <a href="">&gt;</a>                      
+              </li>
+              <li onclick="{!c.lastPage}" class="slds-button--neutral lipaging disabled" title="Last Page" id="lastPage">
+                <a href="">&gt;&gt;</a>
+              </li>
+              <aura:set attribute="else">
+                <li onclick="{!c.nextPage}" class="slds-button--neutral lipaging" title="Next Page" id="nextPage">
+                  <a href="">&gt;</a>                      
+                </li>
+                <li onclick="{!c.lastPage}" class="slds-button--neutral lipaging" title="Last Page" id="lastPage">
+                  <a href="">&gt;&gt;</a>
+                </li>
+              </aura:set>
+            </aura:if>
+          </ul>
+        </div>
+
+        <!-- <div class="slds-form-element" style="float:right">
+          <a onclick="{!c.viewAll}" >View All</a>
+        </div> -->
+      </div>
+
+    </div>
+  </div>     
+</article>
+</div>   
+</aura:component>

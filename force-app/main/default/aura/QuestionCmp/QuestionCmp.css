@@ -1,0 +1,37 @@
+.THIS .question-container{
+	margin-left: 60px !important;
+	display: block;
+	margin-bottom: 20px !important;
+	border: 1px solid rgb(221, 219, 218);
+	background: mintcream;
+    padding: 20px;
+}
+
+.THIS .slds-radio .slds-radio_faux{
+	border: 1px solid rgb(112, 110, 107) !important;
+}
+
+.THIS .datePicker-container {
+	margin-bottom: 10px !important;
+	width: 25% !important;
+}
+
+.THIS .radio-container {
+	margin-bottom: 10px !important;
+}
+
+.THIS .textarea-container > lightning-textarea > label {
+	font-size: 13px !important;
+}
+
+.THIS .title-container {
+	margin-bottom: 10px !important;
+}
+
+.THIS .images-container {
+	margin-bottom: 10px !important;
+}
+
+.THIS .image-container {
+	margin-bottom: 5px !important;
+}

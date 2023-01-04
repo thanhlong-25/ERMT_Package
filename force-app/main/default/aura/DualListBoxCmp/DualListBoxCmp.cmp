@@ -1,0 +1,27 @@
+<aura:component controller="ERMT_ProjectCC" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+	<aura:attribute name="options" type="List" default="[]"/>
+	<aura:attribute name="values" type="List" default="[]"/>
+	<aura:attribute name="titleLabel" type="String" description="Title of dual listbox" access="global"/>
+	<aura:attribute name="recordTypeName" type="String" description="Developer Name of record type want to show" access="global"/>
+	<aura:attribute name="maximum" type="Integer" default="100" description="Maximum number of options required in the selected options list box" access="global"/>
+	<aura:attribute name="fieldLevelHelp" type="String" description="Help text" access="global"/>
+	<aura:attribute name="prjField" type="Project__c"/>
+	<aura:attribute name="isDisable" type="Boolean" default="true" />
+	<force:recordData
+		recordId="{!v.recordId}"
+		targetFields="{!v.prjField}"
+		recordUpdated="{! c.handleRecordChanged }"
+		fields="RecordType.DeveloperName"/>
+		<div class="slds-box slds-theme_default">
+			<lightning:dualListbox name="classification"  
+				label= "{!v.titleLabel}" 
+				sourceLabel="Available" 
+				selectedLabel="Selected" 
+				fieldLevelHelp="{!v.fieldLevelHelp}" 
+				options="{!v.options}" 
+				value="{!v.values}"
+				onchange="{! c.handleChange }"
+				max="{!v.maximum}" 
+				disabled="{!v.isDisable}"/>
+		</div>
+</aura:component>

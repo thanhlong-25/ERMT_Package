@@ -1,0 +1,387 @@
+<template>
+    <lightning-card icon-name="custom:custom75">
+        <lightning-spinner if:true={isProcessing} alternative-text="Processing" variant="brand"></lightning-spinner>
+        <div slot="title">
+            <span class="title">{label.title}</span>
+        </div>
+        <div slot="actions">
+            <lightning-button-group>
+                <lightning-button-icon-stateful
+                    icon-name="utility:search"
+                    alternative-text={label.searchCondition} title={label.searchCondition}
+                    selected={isSearchCondVisible}
+                    onclick={handleSearchConditionClick}></lightning-button-icon-stateful>
+                <lightning-button-icon-stateful
+                    if:true={header}
+                    icon-name="utility:preview"
+                    alternative-text={label.cellValueFullDisplay} title={label.cellValueFullDisplay}
+                    selected={isCellValueFullDisplay}
+                    onclick={handleCellValueFullDisplayClick}></lightning-button-icon-stateful>
+                <lightning-button-icon
+                    if:false={isFullWindowMode}
+                    icon-name="utility:new_window"
+                    alternative-text={label.newWindowOpen} title={label.newWindowOpen}
+                    onclick={handleNewWindowOpenClick}></lightning-button-icon>
+            </lightning-button-group>
+        </div>
+        <div class="">
+            <div if:true={errorMessages}
+                class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error" role="alert">
+                <lightning-icon icon-name="utility:error" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                <h2>
+                    <template for:each={errorMessages} for:item="errMsg">
+                        <p key={errMsg}>{errMsg}</p>
+                    </template>
+                </h2>
+                <div class="slds-notify__close">
+                    <button class="slds-button slds-button_icon slds-button_icon-small slds-button_icon-inverse"
+                        onclick={handleErrorAlertCloseClick}>
+                        <lightning-icon icon-name="utility:close" size="small" variant="inverse"></lightning-icon>
+                    </button>
+                </div>
+            </div>
+            <div class="slds-m-horizontal_small slds-m-top_xx-small slds-hide"
+                data-name="search-condition-panel-wrap"
+            >
+                <div class="slds-panel slds-size_full slds-panel_docked slds-panel_docked-left"
+                    data-name="search-condition-panel"
+                    aria-hidden="false"
+                >
+                    <div class="slds-panel__header">
+                        <div class="slds-panel__header-title slds-text-heading_small slds-truncate" title={label.searchCondition}>
+                            {label.searchCondition}
+                        </div>
+                        <button class="slds-button slds-button_icon slds-button_icon-small slds-panel__close"
+                            onclick={handleSearchConditionCancelClick}
+                        >
+                            <svg class="slds-button__icon" aria-hidden="true">
+                                <use xlink:href="/_slds/icons/utility-sprite/svg/symbols.svg#close"></use>
+                            </svg>
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                    </div>
+                    <div class="slds-panel__body">
+                        <div if:true={projectSels} class="slds-section slds-is-open">
+                            <div class="slds-section__title slds-theme_shade">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col">
+                                        <h3>
+                                            <span class="slds-truncate slds-p-horizontal_small" title={label.project}>
+                                                {label.project}
+                                            </span>
+                                        </h3>
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning-input type="toggle" label="" checked={searchCondTemp.project.isEnabled}
+                                            message-toggle-active="" message-toggle-inactive="" variant="label-hidden"
+                                            onchange={handleProjectSearchCondEnableChange}>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class={projectSearchCondClass}>
+                                <div class="slds-m-horizontal_medium">
+                                    <lightning-dual-listbox
+                                        data-name="project-serach-condition"
+                                        label=""
+                                        source-label={label.selectable}
+                                        selected-label={label.selected}
+                                        options={projectSels}
+                                        value={searchCondTemp.project.value}
+                                        variant="label-hidden"
+                                        size="3"
+                                        required
+                                        onchange={handleProjectSearchCondChange}></lightning-dual-listbox>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-section slds-is-open">
+                            <div class="slds-section__title slds-theme_shade">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col">
+                                        <h3>
+                                            <span class="slds-truncate slds-p-horizontal_small" title={label.risk}>
+                                                {label.risk}
+                                            </span>
+                                        </h3>
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning-input type="toggle"
+                                            label=""
+                                            checked={searchCondTemp.risk.isEnabled}
+                                            message-toggle-active=""
+                                            message-toggle-inactive=""
+                                            variant="label-hidden"
+                                            onchange={handleRiskSearchCondEnableChange}>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class={riskSearchCondClass}>
+                                <div class="slds-m-horizontal_medium">
+                                    <c-record-search-condition
+                                        data-name="risk-serach-condition"
+                                        object-name={riskObjectName}
+                                        value={searchCondTempRisk}
+                                        select-field-names={riskSearchFieldNames}
+                                        is-search-hide="true"
+                                        onedit={handleRiskSearchCondEdit}
+                                    ></c-record-search-condition>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-section slds-is-open">
+                            <div class="slds-section__title slds-theme_shade">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col">
+                                        <h3>
+                                            <span class="slds-truncate slds-p-horizontal_small" title={label.riskClassi}>
+                                                {label.riskClassi}
+                                            </span>
+                                        </h3>
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning-input type="toggle"
+                                            label=""
+                                            checked={searchCondTemp.riskClassi.isEnabled}
+                                            message-toggle-active=""
+                                            message-toggle-inactive=""
+                                            variant="label-hidden"
+                                            onchange={handleRiskClassiSearchCondEnableChange}>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class={riskClassiSearchCondClass}>
+                                <div class="slds-m-horizontal_medium">
+                                    <template if:true={searchCondTemp.riskClassi.riskClassis} for:each={searchCondTemp.riskClassi.riskClassis} for:item="riskClassi">
+                                        <div key={riskClassi} class="slds-section slds-is-open">
+                                            <div class="slds-section__title slds-theme_shade">
+                                                <div class="slds-grid slds-grid_vertical-align-center">
+                                                    <div class="slds-col">
+                                                        <h3>
+                                                            <span class="slds-truncate slds-p-horizontal_small" title={riskClassi.label}>
+                                                                {riskClassi.label}
+                                                            </span>
+                                                        </h3>
+                                                    </div>
+                                                    <div class="slds-col">
+                                                        <lightning-input type="toggle" label="" checked={riskClassi.isEnabled}
+                                                            message-toggle-active="" message-toggle-inactive="" variant="label-hidden"
+                                                            data-index={riskClassi.index}
+                                                            onchange={handleRiskClassisSearchCondEnableChange}>
+                                                        </lightning-input>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class={riskClassi.searchCondClass}>
+                                                <div class="slds-m-horizontal_medium">
+                                                    <lightning-dual-listbox
+                                                        data-name="riskClassi-serach-condition"
+                                                        data-index={riskClassi.index}
+                                                        label=""
+                                                        source-label={label.selectable}
+                                                        selected-label={label.selected}
+                                                        options={riskClassi.options}
+                                                        value={riskClassi.value}
+                                                        variant="label-hidden"
+                                                        size="3"
+                                                        required
+                                                        onchange={handleRiskClassisSearchCondChange}
+                                                    ></lightning-dual-listbox>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-section slds-is-open">
+                            <div class="slds-section__title slds-theme_shade">
+                                <div class="slds-grid slds-grid_vertical-align-center">
+                                    <div class="slds-col">
+                                        <h3>
+                                            <span class="slds-truncate slds-p-horizontal_small" title={label.riskAssessment}>
+                                                {label.riskAssessment}
+                                            </span>
+                                        </h3>
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning-input type="toggle"
+                                            label=""
+                                            checked={searchCondTemp.riskAssessment.isEnabled}
+                                            message-toggle-active=""
+                                            message-toggle-inactive=""
+                                            variant="label-hidden"
+                                            onchange={handleRiskAssessSearchCondEnableChange}>
+                                        </lightning-input>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class={riskAssessmentSearchCondClass}>
+                                <div class="slds-m-horizontal_medium">
+                                    <c-record-search-condition
+                                        data-name="riskAssessment-serach-condition"
+                                        object-name={riskAssessmentObjectName}
+                                        value={searchCondTempRiskAssessment}
+                                        select-field-names={riskAssessSearchFieldNames}
+                                        is-search-hide="true"
+                                        onedit={handleRiskAssessSearchCondEdit}
+                                    ></c-record-search-condition>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-text-align_center">
+                            <lightning-button label={label.search} variant="brand" class="slds-m-horizontal_xx-small"
+                                onclick={handleSearchConditionSearchClick}></lightning-button>
+                            <div class="slds-text-color_error slds-m-top_xxx-small">{searchCondErrorMessage}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <template if:true={isFullWindowMode}>
+                <div if:true={recordId} class="slds-grid slds-wrap slds-gutters_x-small slds-m-horizontal_small slds-m-top_xx-small">
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                        <div class="slds-form-element slds-form-element_readonly">
+                            <span class="slds-form-element__label">{label.project}</span>
+                            <div class="slds-form-element__control">
+                                <div class="slds-form-element__static">
+                                    <a href={projectViewUrl} title={projectName} target="_blank">
+                                        {projectName}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+            <div class="slds-grid slds-wrap slds-gutters_x-small slds-m-horizontal_small slds-m-top_xx-small">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <c-account-combobox
+                        label={label.account}
+                        value={accountIds}
+                        onselectionchange={handleAccountChange}
+                    ></c-account-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <c-risk-assessment-classi-combobox
+                        project-id={projectId}
+                        classi-record-type-name={label.classiRecordType_analyseTiming}
+                        is-label-show="true"
+                        value={analyseTimingClassiId}
+                        oninputchange={handleAnalyseTimingChange}
+                    ></c-risk-assessment-classi-combobox>
+                </div>
+            </div>
+            <div class="slds-grid slds-wrap slds-gutters_x-small slds-m-horizontal_small slds-m-top_xx-small">
+                <div if:true={axisSels} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <lightning-combobox
+                        label={label.verticalAxis}
+                        value={vrAxisClassiRecordType}
+                        options={axisSels}
+                        onchange={handleVrAxisClassiRecordTypeChange}
+                        placeholder=""
+                    ></lightning-combobox>
+                </div>
+                <div if:true={axisSels} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <lightning-combobox
+                        label={label.horizontalAxis}
+                        value={hrAxisClassiRecordType}
+                        options={axisSels}
+                        onchange={handleHrAxisClassiRecordTypeChange}
+                        placeholder=""
+                    ></lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                    <lightning-radio-group type="button"
+                        label={label.type}
+                        value={type}
+                        options={typeSels}
+                        onchange={handleTypeChange}></lightning-radio-group>
+                </div>
+            </div>
+            <div class="slds-m-horizontal_small slds-m-vertical_small slds-scrollable" style={riskMatrixWrapStyle}>
+                <table class="slds-table slds-no-row-hover riskMatrix">
+                    <thead>
+                        <tr class="slds-line-height_reset">
+                            <template if:true={header} for:each={header} for:item="cell">
+                                <th key={cell} class={cell.class} title={cell.title} scope="col">
+                                    <div class={itemWrapClass}>
+                                        <template for:each={cell.items} for:item="item">
+                                            <div key={item} class="slds-truncate slds-text-align_center" title={item.title}>
+                                                {item.text}
+                                            </div>
+                                        </template>
+                                    </div>
+                                </th>
+                            </template>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template if:true={detail} for:each={detail} for:item="record">
+                            <tr key={record}>
+                                <template iterator:it={record}>
+                                    <template if:true={it.first}>
+                                        <th key={it.value} class={it.value.class} title={it.value.title}>
+                                            <div class={itemWrapClass}>
+                                                <template for:each={it.value.items} for:item="item">
+                                                    <div key={item} class="slds-truncate slds-text-align_center" title={item.title}>
+                                                        {item.text}
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </th>
+                                    </template>
+                                    <template if:false={it.first}>
+                                        <template if:true={it.last}>
+                                            <th key={it.value} class={it.value.class} title={it.value.title}>
+                                                <div class={itemWrapClass}>
+                                                    <template for:each={it.value.items} for:item="item">
+                                                        <div key={item} class="slds-truncate slds-text-align_center" title={item.title}>
+                                                            {item.text}
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </th>
+                                        </template>
+                                        <template if:false={it.last}>
+                                            <td key={it.value} class={it.value.class} style={it.value.style} title={it.value.title}>
+                                                <div if:true={it.value.isType1} class={itemWrapClass}>
+                                                    <template for:each={it.value.items} for:item="item">
+                                                        <div key={item} class="slds-truncate" title={item.title}>
+                                                            <a href={item.url} style={it.value.linkStyle} target="_blank">
+                                                                {item.text}
+                                                            </a>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                                <div if:true={it.value.isType2}>
+                                                    <div class="slds-text-align_center" style={it.value.linkStyle}>
+                                                        {it.value.itemNum}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </template>
+                                    </template>
+                                </template>
+                            </tr>
+                        </template>
+                        <tr class="slds-line-height_reset">
+                            <template if:true={header} for:each={header} for:item="cell">
+                                <th key={cell} class={cell.class} title={cell.title} scope="col">
+                                    <div class={itemWrapClass}>
+                                        <template for:each={cell.items} for:item="item">
+                                            <div key={item} class="slds-truncate slds-text-align_center" title={item.title}>
+                                                {item.text}
+                                            </div>
+                                        </template>
+                                    </div>
+                                </th>
+                            </template>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </lightning-card>
+</template>

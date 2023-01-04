@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>52.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>リスク分類参照・編集</masterLabel>
+    <targets>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property label="参照のみ" name="isReadOnly" type="Boolean" default="false" />
+            <property label="タイトルの表示" name="isTitleVisible" type="Boolean" default="true" />
+            <property label="レイアウトの列数" name="columnsNumber" type="Integer" min="1" max="4" default="1" />
+            <objects>
+                <object>ermt__Risk__c</object>
+            </objects>
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

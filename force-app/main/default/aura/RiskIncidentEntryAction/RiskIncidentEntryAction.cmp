@@ -1,0 +1,17 @@
+<aura:component implements="force:lightningQuickActionWithoutHeader,force:hasRecordId">
+    <aura:html tag="style">
+        .modal-container {
+            <!-- width: 50%;
+            max-width: 40rem;
+            min-width: 20rem; -->
+            width: 70% !important;
+            max-width: 70rem !important;
+            min-width: 35rem !important;
+        }
+        .slds-modal__content {
+            <!-- height: unset !important;
+            max-height: unset !important; -->
+        }
+    </aura:html>
+    <c:riskIncidentEntry recordId="{!v.recordId}" onclose="{!c.handleClose}" />
+</aura:component>
